@@ -74,7 +74,8 @@ for (let key in paramsMapping)
 const singleMap = {
     isUseDefaultValue: new Single("$D", comment("占位符，表示使用默认参数（前提是有）", "FE: -a $D 90")),
     isRecursion: new Single("-R", comment("使用递归", "FE: C:/AA/BB/CC .vpk -R")),
-    isSaveLog: new Single("-L", comment("为本次操作保存日志", "FE: C:/AA/BB/CC .vpk -R -L"))
+    isSaveLog: new Single("-L", comment("为本次操作保存日志", "FE: C:/AA/BB/CC .vpk -R -L")),
+    isShowCollectFiles: new Single("-SC", comment("仅显示收集到的文件集合，不创建符号链接", "FE: C:/AA/BB/CC .vpk -R -L -SC"))
 };
 //#endregion
 

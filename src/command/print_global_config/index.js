@@ -1,4 +1,5 @@
 const GC = require("../../class/GlobalConfig");
+const Logger = require("../../class/Logger");
 
 module.exports = function (params, meta)
 {
@@ -8,7 +9,7 @@ module.exports = function (params, meta)
         {
             const element = GC[key];
             let msg = key.concat(" = ", element)
-            console.log(msg);
+            Logger.info(msg);
         }
     }
 }

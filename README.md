@@ -54,5 +54,6 @@
     * 打印全局配置
     * 设置全局配置 recursionDeep、collectFileMaxCount 命令
     * 符号链接统计功能（成功、失败）
+    * 显示收集的文件
 
 - TODO: 其他任务

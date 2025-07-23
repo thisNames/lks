@@ -12,6 +12,7 @@ const printGlobalConfig = require("./command/print_global_config");
 // 工具类
 const { isAdministrator, typeInt } = require("./class/Tools");
 const GC = require("./class/GlobalConfig");
+const Logger = require("./class/Logger");
 
 // 添加任务：
 
@@ -50,7 +51,7 @@ paramsMapping["set:add"].params.addTask("set:add", function (params, meta)
 paramsMapping["version"].params.addTask("print:version", function (params, meta)
 {
     let package = require("../package.json");
-    console.log(package.version);
+    Logger.info(package.version);
 });
 
 // 命令帮助
@@ -80,14 +81,15 @@ paramsMapping["set:collectFileMaxCount"].params.addTask("set:collectFileMaxCount
 paramsMapping["file:symlink"].params.addTask("file:symlink", function (params, meta)
 {
     // 判断是不是管理员
-    if (!isAdministrator()) return console.log("ERROR: 请使用管理员权限运行此命令");
+    if (!isAdministrator()) return Logger.error("ERROR: 请使用管理员权限运行此命令");
 
     fileSymlink(params, {
         ...meta,
         isRecursion: process.argv.includes(singleMap.isRecursion.key),
         recursionDeep: GC.recursionDeep,
         collectFileMaxCount: GC.collectFileMaxCount,
-        isSaveLog: process.argv.includes(singleMap.isSaveLog.key)
+        isSaveLog: process.argv.includes(singleMap.isSaveLog.key),
+        isShowCollectFiles: process.argv.includes(singleMap.isShowCollectFiles.key)
     });
 });
 
@@ -95,7 +97,7 @@ paramsMapping["file:symlink"].params.addTask("file:symlink", function (params, m
 const START_TIME = Date.now();
 process.addListener("exit", () =>
 {
-    console.log(`\r\nrunning time is ${Date.now() - START_TIME}ms`);
+    Logger.info(`\r\nrunning time is ${Date.now() - START_TIME}ms`);
 });
 
 module.exports = {

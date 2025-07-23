@@ -97,6 +97,29 @@ class Tools
         let _value = Number.parseInt(value);
         return Number.isNaN(_value) ? defaultValue : _value;
     }
+
+    /**
+      *  获取日期
+      *  @param {String} split 分隔符 -
+      *  @returns {String}
+      */
+    static getDate(split = "-")
+    {
+        const d = new Date();
+        return "".concat(d.getFullYear(), split, d.getMonth() + 1, split, d.getDate());
+    }
+
+    /**
+     *  获取实时日期时间
+     *  @param {String} split 分隔符 -
+     *  @returns {String}
+     */
+    static getRealTime(split = "-")
+    {
+        const date = new Date();
+        const datetime = date.toLocaleDateString() + split + date.toLocaleTimeString();
+        return datetime;
+    }
 }
 
 module.exports = Tools;

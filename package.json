@@ -1,7 +1,7 @@
 {
   "name": "lks",
   "version": "0.0.1",
-  "description": "批量创建符号链接",
+  "description": "批量创建符号链接，工具包",
   "main": "index.js",
   "scripts": {},
   "keywords": [],
