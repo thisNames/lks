@@ -8,6 +8,7 @@ const { paramsMapping, paramsMap, singleMap } = require("./command"); // 命令�
 const fileSymlink = require("./command/file_symlink");
 const printHelp = require("./command/print_help");
 const printGlobalConfig = require("./command/print_global_config");
+const downloadVpk = require("./command/download_vpk");
 
 // 工具类
 const { isAdministrator, typeInt } = require("./class/Tools");
@@ -77,6 +78,9 @@ paramsMapping["set:collectFileMaxCount"].params.addTask("set:collectFileMaxCount
     GC.collectFileMaxCount = value;
 });
 
+// 下载 Steam 创意工坊的文件（免费的）
+paramsMapping["download:vpk"].params.addTask("download:vpk", downloadVpk);
+
 // 为文件批量创建符号链接
 paramsMapping["file:symlink"].params.addTask("file:symlink", function (params, meta)
 {
@@ -85,11 +89,11 @@ paramsMapping["file:symlink"].params.addTask("file:symlink", function (params, m
 
     fileSymlink(params, {
         ...meta,
-        isRecursion: process.argv.includes(singleMap.isRecursion.key),
+        isRecursion: singleMap.isRecursion.include,
         recursionDeep: GC.recursionDeep,
         collectFileMaxCount: GC.collectFileMaxCount,
-        isSaveLog: process.argv.includes(singleMap.isSaveLog.key),
-        isShowCollectFiles: process.argv.includes(singleMap.isShowCollectFiles.key)
+        isSaveLog: singleMap.isSaveLog.include,
+        isShowCollectFiles: singleMap.isShowCollectFiles.include
     });
 });
 

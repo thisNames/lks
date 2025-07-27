@@ -1,5 +1,6 @@
-const { execSync } = require('child_process');
-const os = require('os');
+const { execSync } = require("node:child_process");
+const os = require("node:os");
+const readline = require("node:readline");
 
 const Params = require("./Params");
 
@@ -14,8 +15,10 @@ class Tools
     }
 
     /**
+     *  填充指令参数
+     *  @version 0.0.1
      *  @param {Params} pm 参数命令对象
-     *  @param {Boolean} isUseDefaultValueKey 是否使用默认参数
+     *  @param {String} isUseDefaultValueKey 是否使用默认参数
      *  @returns {Params} 参数命令对象
      */
     static fillParams(pm, isUseDefaultValueKey)
@@ -50,8 +53,10 @@ class Tools
 
     /**
      *  生成文字注释
+     *  @version 0.0.1
      *  @param {...*} args 文字
      *  @returns {String}
+     *  @deprecated 直接使用命令帮助文档
      */
     static comment(...args)
     {
@@ -61,6 +66,7 @@ class Tools
 
     /**
      *  判断是否是管理员权限运行命令
+     *  @version 0.0.1
      *  @returns {Boolean} 是 true 或者不是 false
      */
     static isAdministrator()
@@ -88,6 +94,7 @@ class Tools
 
     /**
      *  转换整数
+     *  @version 0.0.1
      *  @param {String} value 参数字符串
      *  @param {Number} defaultValue 转换失败，使用此默认值
      *  @returns {Number}
@@ -95,14 +102,15 @@ class Tools
     static typeInt(value, defaultValue)
     {
         let _value = Number.parseInt(value);
-        return Number.isNaN(_value) ? defaultValue : _value;
+        return Number.isFinite(_value) ? _value : defaultValue;
     }
 
     /**
-      *  获取日期
-      *  @param {String} split 分隔符 -
-      *  @returns {String}
-      */
+     *  获取日期
+     *  @version 0.0.1
+     *  @param {String} split 分隔符 -
+     *  @returns {String}
+     */
     static getDate(split = "-")
     {
         const d = new Date();
@@ -111,6 +119,7 @@ class Tools
 
     /**
      *  获取实时日期时间
+     *  @version 0.0.1
      *  @param {String} split 分隔符 -
      *  @returns {String}
      */
@@ -119,6 +128,119 @@ class Tools
         const date = new Date();
         const datetime = date.toLocaleDateString() + split + date.toLocaleTimeString();
         return datetime;
+    }
+
+    /**
+     *  将字节(byte)转换为最合适的单位（KB、MB、GB）
+     *  @version 0.0.1
+     *  @param {number} bytes 字节数
+     *  @returns {{value: number, type: 'KB' | 'MB' | 'GB'}}
+     */
+    static formatBytes(bytes)
+    {
+        if (typeof bytes !== 'number' || bytes < 0) throw new TypeError('bytes 必须为非负数字');
+
+        const KB = 1024;
+        const MB = KB * 1024;
+        const GB = MB * 1024;
+
+        let value, type;
+
+        if (bytes < KB)
+        {
+            value = bytes;
+            type = 'B';
+        } else if (bytes < MB)
+        {
+            value = bytes / KB;
+            type = 'KB';
+        } else if (bytes < GB)
+        {
+            value = bytes / MB;
+            type = 'MB';
+        } else
+        {
+            value = bytes / GB;
+            type = 'GB';
+        }
+
+        // 保留两位小数
+        value = parseFloat(value.toFixed(2));
+
+        return { value, type };
+    }
+
+    /**
+     *  获取控制台输入
+     *  @version 0.0.1
+     *  @returns {Promise<{ input: String | null, done: Boolean }>}
+     */
+    static terminalInput()
+    {
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+        rl.prompt(true);
+
+        return new Promise((res, rej) =>
+        {
+            // 监听第一行输入
+            rl.once("line", input =>
+            {
+                res({ input, done: true });
+                rl.close();
+            });
+            rl.on("close", () => rej({ done: false }));
+        });
+    }
+
+    /**
+     * 将字符串中的非法文件夹名字符剔除
+     * @version 0.0.1
+     * @param {String} [defaultName="untitled"] 如果结果为空，给个默认名字
+     * @param {string} str 原始字符串
+     * @returns {string}   可用于新建文件夹的安全名称
+     */
+    static sanitizeFolderName(str, defaultName = "untitled")
+    {
+        if (typeof str !== 'string') return '';
+
+        // 1. 定义非法字符集合（Windows + POSIX）
+        //   Windows: <>:"/\|?*
+        //   Linux/macOS: 主要是 '/' 和 '\0'，但为统一体验，也去掉 <>:|?*"
+        const illegalChars = /[<>:"/\\|?*\x00-\x1f]/g;
+
+        // 2. 去掉非法字符、首尾空格/句点
+        let safe = str.replace(illegalChars, '').trim().replace(/^\.+|\.+$/g, ''); // 去掉首尾连续的句点
+
+        // 3. 处理 Windows 保留名称（CON, PRN, AUX, NUL, COM1..9, LPT1..9 等）
+        const reserved = /^(CON|PRN|AUX|NUL|COM\d|LPT\d)(\.|$)/i;
+        if (reserved.test(safe))
+        {
+            safe = safe.replace(/^(.+)/, '_$1'); // 前面加下划线
+        }
+
+        // 4. 如果结果为空，给个默认名字
+        if (!safe) safe = defaultName;
+
+        return safe;
+    }
+
+    /**
+     *  判断是合法的 url
+     *  @version 0.0.1
+     *  @param {String} url exp: https:127.0.0.1
+     *  @returns {URL | null}
+     */
+    static validURL(url)
+    {
+        try
+        {
+            const origin = new URL(url);
+            return origin;
+        } catch (error)
+        {
+            return null;
+        }
     }
 }
 

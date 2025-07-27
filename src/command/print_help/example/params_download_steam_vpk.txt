@@ -1,0 +1,6 @@
+下载 Steam 创意工坊里的免费的模组
+比如《Left 4 Dead 2》等
+查询接口使用 Steam Web API
+了解更多：https://partner.steamgames.com/doc/webapi
+
+基本使用：-dv id1 id2 id3 ... 【id 的格式必须是数字】

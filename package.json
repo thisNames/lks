@@ -8,6 +8,7 @@
   "author": "animator70@outlook.com",
   "license": "MulanPSL2",
   "devDependencies": {
+    "@types/cli-progress": "^3.11.6",
     "@types/node": "^18.19.120"
   },
   "repository": {
@@ -19,5 +20,8 @@
       "url": "https://gitee.com/nextall/lks",
       "type": "gitee"
     }
-  ]
+  ],
+  "dependencies": {
+    "cli-progress": "^3.12.0"
+  }
 }

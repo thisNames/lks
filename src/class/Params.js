@@ -9,12 +9,13 @@ class Params extends Single
      *  @description 注意：defaults 数组的长度，必须要和 count 一致（defaults.length = count）
      *  @param {String} key 命令的关键字
      *  @param {Number} count 命令后面跟的参数个数。如果值为小于0，那么后面的参数都将作为 params，defaults 参数将不会生效
-     *  @param {Array<String>} [defaults=[]] 默认参数
-     *  @param {string} [description=null] 命令描述
+     *  @param {Array<String>} defaults 默认参数数组
+     *  @param {string} description 简单命令描述
+     *  @param {String} [example=""] 命令帮助文档路径
      */
-    constructor(key, count, defaults = [], description = null)
+    constructor(key, count, defaults, description, example = "")
     {
-        super(key, description);
+        super(key, description, example);
         this.count = count;
         this.defaults = defaults;
 
