@@ -7,9 +7,7 @@ const Params = require("./class/Params");
 const Single = require("./class/Single");
 const GC = require("./class/GlobalConfig");
 
-/**
- *  @type {Map<String, Params>} 参数命令数组
- */
+/** @type {Map<String, Params>} 参数命令数组 */
 const paramsMap = new Map();
 
 //#region 参数命令映射表：设置参数命令映射表（优先匹配 mapKey；通配符命令 * 放在末尾）
@@ -73,7 +71,7 @@ for (let key in paramsMapping)
 }
 //#endregion
 
-//#region 布尔命令映射表：注册布尔命令
+//#region 布尔命令映射表：注册布尔命令（推荐使用参数命令实现）
 const singleMap = {
     isUseDefaultValue: new Single("$D", "占位符，表示使用默认参数（前提是有）", "bool_use_defaults.txt"),
     isRecursion: new Single("-R", "启用递归"),
