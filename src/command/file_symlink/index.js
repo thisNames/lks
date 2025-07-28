@@ -6,7 +6,7 @@ const pt = require("node:path");
 
 // class
 const MessageCollect = require("../../class/MessageCollect");
-const Logger = require("../../class/Logger");
+const LoggerSaver = require("../../class/LoggerSaver");
 
 /**
  *  收集文件
@@ -108,43 +108,34 @@ async function createSymlink(files, workerFolder, progress)
 
 /**
  *  @param {Array<String>} files 文件集合
- *  @param {Boolean} 保持日志
- *  @param {String} workerFolder 日志文件保持路径
+ *   @param {LoggerSaver} Logger 日志记录器
  */
-function printCollectFiles(files, isSaveLog, workerFolder)
+function printCollectFiles(files, Logger)
 {
     // 打印
     let counted = `counted: total is ${files.length}`;
-
     files.forEach(filename => Logger.info(filename));
     Logger.success(counted);
-
-    if (!isSaveLog) return;
-
-    // 日志
-    let name = "fcs";
-    let fcMc = new MessageCollect(name, workerFolder);
-    files.forEach(filename => fcMc.collect(name, filename));
-    fcMc.collect(name, counted).close();
 }
 
 module.exports = async function (params, meta)
 {
+    // 解构参数
     let extName = params[0]; // 文件拓展名
-    let { key: sourceFolder } = meta; // 源目录
+    let { key: sourceFolder, isRecursion, recursionDeep, collectFileMaxCount, isShowCollectFiles, singleMap } = meta;
+
+    const Logger = new LoggerSaver("File_Symlink_Task", meta.WORKER_PATH, singleMap.isSaveLog.include);
 
     // 判断源目录是否存在
     if (!fs.existsSync(sourceFolder)) return Logger.error(`ERROR: 没有这样的目录 => ${sourceFolder}`);
 
-    // 解构参数
-    let { isRecursion, recursionDeep, collectFileMaxCount, isSaveLog, isShowCollectFiles } = meta;
     // 获取工作路径，符号链接生成路径（目标）
-    let workerFolder = pt.resolve("./");
+    let workerFolder = meta.WORKER_PATH || pt.resolve("./");
     // 收集文件
     const files = collectFiles(sourceFolder, extName, isRecursion, recursionDeep, collectFileMaxCount);
 
     // 打印收集，不创建符号链接
-    if (isShowCollectFiles) return printCollectFiles(files, isSaveLog, workerFolder);
+    if (isShowCollectFiles) return printCollectFiles(files, Logger);
 
     // 开始创建符号链接
     let result = await createSymlink(files, workerFolder, item => item.ok ? Logger.info(item.message) : Logger.error(item.message));
@@ -153,13 +144,5 @@ module.exports = async function (params, meta)
     let success = result.filter(item => item.ok).length; // 成功的
     let fail = result.length - success; // 失败的
     let counted = `counted: total is ${result.length}, success is ${success}, fail is ${fail}`;
-    Logger.success(counted);
-
-    if (!isSaveLog) return;
-
-    // 日志
-    let name = "file_symlink";
-    let mc = new MessageCollect(name, workerFolder);
-    result.forEach(item => mc.collect(name, item.message));
-    mc.collect(name, counted).close();
+    Logger.success(counted).close();
 }

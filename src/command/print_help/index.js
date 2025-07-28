@@ -4,14 +4,15 @@
 const fs = require("node:fs");
 const pt = require("node:path");
 
-const Logger = require("../../class/Logger");
+const LoggerSaver = require("../../class/LoggerSaver");
 
 /**
  *  打印简单描述
  *  @param {Object} PMG 参数命令映射表
  *  @param {Object} SM 布尔命令映射表
+ *  @param {LoggerSaver} Logger LoggerSaver 实例
  */
-function printDescription(PMG, SM)
+function printDescription(PMG, SM, Logger)
 {
     // 参数命令
     Logger.info("参数命令")
@@ -45,8 +46,9 @@ function printDescription(PMG, SM)
  *  打印版主文档
  *  @param {String} helpDocumentPath 帮助文档路径
  *  @param {String} key 命令
+ *  @param {LoggerSaver} Logger LoggerSaver 实例
  */
-function printHelpDocument(key, helpDocumentPath)
+function printHelpDocument(key, helpDocumentPath, Logger)
 {
     if (fs.existsSync(helpDocumentPath) && fs.statSync(helpDocumentPath).isFile())
     {
@@ -73,18 +75,28 @@ function printHelpDocument(key, helpDocumentPath)
  */
 module.exports = function (params, meta)
 {
-    let { PMG, SM } = meta;
+    // 参数命令映射表
+    let { singleMap, paramsMapping } = meta;
+
+    // 日志
+    const Logger = new LoggerSaver("Print_Help", meta.WORKER_PATH, singleMap.isSaveLog.include);
+
     let printing = false;
 
     params = [...new Set(params)];
     // 指令参数
-    let paramsMap = Object.values(PMG);
+    let __paramsMap = Object.values(paramsMapping);
     for (let i = 0; i < params.length; i++)
     {
         let key = params[i];
-        let paramOption = paramsMap.find(pm => pm.mapKey == key || pm.params.key == key);
+        let paramOption = __paramsMap.find(pm => pm.mapKey == key || pm.params.key == key);
 
-        if (!paramOption) continue;
+        // 如果没有找到对应的参数
+        if (!paramOption)
+        {
+            Logger.warn(`没有找到对应的参数 [${key}]`);
+            continue;
+        }
 
         // 读取帮助文档
         let helpDocumentPath = pt.join(__dirname, "example", paramOption.params.example);
@@ -96,16 +108,16 @@ module.exports = function (params, meta)
         Logger.success(`参数个数：${counter}`);
         Logger.success(`默认参数：${defaulter}`).line();
 
-        printHelpDocument(key, helpDocumentPath);
+        printHelpDocument(key, helpDocumentPath, Logger);
 
         printing = true;
     }
 
     // 布尔参数
-    let singleMap = Object.values(SM);
-    for (let i = 0; i < singleMap.length; i++)
+    let __singleMap = Object.values(singleMap);
+    for (let i = 0; i < __singleMap.length; i++)
     {
-        const single = singleMap[i];
+        const single = __singleMap[i];
 
         if (!single.include) continue;
 
@@ -113,10 +125,15 @@ module.exports = function (params, meta)
         let helpDocumentPath = pt.join(__dirname, "example", single.example);
 
         Logger.prompt(`${single.key}: ${single.description} [布尔命令]`).line();
-        printHelpDocument(single.key, helpDocumentPath);
+        printHelpDocument(single.key, helpDocumentPath, Logger);
 
         printing = true;
     }
 
-    if (params.length < 1 && !printing) return printDescription(PMG, SM);
+    if (params.length < 1 && !printing)
+    {
+        printDescription(paramsMapping, singleMap, Logger);
+    }
+
+    Logger.close();
 }

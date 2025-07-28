@@ -1,6 +1,7 @@
 const { execSync } = require("node:child_process");
 const os = require("node:os");
 const readline = require("node:readline");
+const crypto = require('node:crypto');
 
 const Params = require("./Params");
 
@@ -56,7 +57,6 @@ class Tools
      *  @version 0.0.1
      *  @param {...*} args 文字
      *  @returns {String}
-     *  @deprecated 直接使用命令帮助文档
      */
     static comment(...args)
     {
@@ -172,8 +172,8 @@ class Tools
 
     /**
      *  获取控制台输入
-     *  @version 0.0.1
-     *  @returns {Promise<{ input: String | null, done: Boolean }>}
+     *  @version 0.0.2
+     *  @returns {Promise<String>}
      */
     static terminalInput()
     {
@@ -186,10 +186,10 @@ class Tools
             // 监听第一行输入
             rl.once("line", input =>
             {
-                res({ input, done: true });
+                res(input.trim());
                 rl.close();
             });
-            rl.on("close", () => rej({ done: false }));
+            rl.on("close", () => rej(""));
         });
     }
 
@@ -241,6 +241,23 @@ class Tools
         {
             return null;
         }
+    }
+
+    /**
+     *  生成指定长度的哈希字符串 ID
+     *  @version 0.0.1
+     *  @param {Number} length 哈希字符串的长度
+     *  @returns {String} 生成的哈希字符串
+     */
+    static generateHashId(length)
+    {
+        if (!Number.isInteger(length) || length <= 0)
+        {
+            length = 5;
+        }
+
+        const buffer = crypto.randomBytes((length + 1) >> 1); // 使用位运算优化 Math.ceil
+        return buffer.toString('hex').substring(0, length); // substring 性能略优于 slice
     }
 }
 

@@ -1,8 +1,10 @@
 const GC = require("../../class/GlobalConfig");
-const Logger = require("../../class/Logger");
+const LoggerSaver = require("../../class/LoggerSaver");
 
 module.exports = function (params, meta)
 {
+    const Logger = new LoggerSaver("Print_Global_Config_Task", meta.WORKER_PATH, meta.singleMap.isSaveLog.include);
+
     for (const key in GC)
     {
         if (Object.prototype.hasOwnProperty.call(GC, key))
@@ -12,4 +14,6 @@ module.exports = function (params, meta)
             Logger.info(msg);
         }
     }
+
+    Logger.close();
 }

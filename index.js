@@ -2,7 +2,10 @@
 const { fillParams } = require("./src/class/Tools");
 
 // src index command
-const { paramsMap, singleMap } = require("./src/index");
+const { paramsMap, singleMap, paramsMapping } = require("./src/index");
+
+// 初始化常量
+const WORKER_PATH = process.cwd();
 
 //#region init
 process.argv.splice(0, 2);
@@ -42,7 +45,7 @@ while (process.argv.length > 0)
         // 运行任务
         console.log(pm);// TODO: debug line comment
 
-        pm.running({ key });
+        pm.running({ key, WORKER_PATH, __dirname, __filename, paramsMap, singleMap, paramsMapping });
 
         // 结束
         paramsMap.delete(key);
@@ -65,7 +68,7 @@ while (process.argv.length > 0)
         // 运行任务
         console.log(pm);// TODO: debug line comment
 
-        pm.running({ key });
+        pm.running({ key, WORKER_PATH, __dirname, __filename, PROGRAM_PATH, paramsMap, singleMap, paramsMapping });
 
         // 结束
         paramsMap.delete(pmKey);

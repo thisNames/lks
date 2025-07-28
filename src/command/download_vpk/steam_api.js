@@ -38,7 +38,7 @@ async function search(ids)
         let responseBody = "";
         incomingMessage.on("data", chunk => responseBody += chunk);
         incomingMessage.on("end", () => res(responseBody));
-        incomingMessage.on("error", () => rej(null));
+        incomingMessage.on("error", () => rej(""));
 
     }).catch(error => error);
 
@@ -68,44 +68,46 @@ async function search(ids)
  */
 module.exports = async function (ids)
 {
+    /** @type {Array<WorkshopFile>} 工坊文件集合 */
+    const workshopFiles = [];
+
     // 搜索文件详情
     const response = await search(ids).catch(error => ({ error }));
 
-    // 搜索失败
-    if (response.error) return Promise.reject(response.error);
+    // 搜索失败 | 404
+    if (response.error || response.code != 200) return Promise.reject(`Search => ${response.error || "404 Not Found"}`);
 
-    // 404
-    if (response.code != 200) return Promise.reject(response.code);
+    // 尝试读取数据
+    const details = response.data?.response?.publishedfiledetails;
 
-    const workshopFiles = [];
+    if (!Array.isArray(details)) return Promise.reject("Invalid API response format");
 
-    try
+    for (let i = 0; i < details.length; i++)
     {
-        // 尝试读取数据
-        for (let i = 0; i < response.data.response.publishedfiledetails.length; i++)
+        const element = details[i];
+
+        if (element.result != 1 || typeof element != "object") continue;
+
+        const workshopFile = WorkshopFile.createWorkshopFileProxy();
+
+        try
         {
-            const element = response.data.response.publishedfiledetails[i];
-
-            if (element.result != 1) continue;
-
-            const workshopFile = WorkshopFile.createWorkshopFileProxy();
-
             workshopFile.id = element.publishedfileid;
             workshopFile.title = element.title;
             workshopFile.filename = element.filename;
             workshopFile.file_url = element.file_url;
-
-            // 计算文件大小
             workshopFile.file_size = Number.parseInt(element.file_size);
-            let size = formatBytes(workshopFile.file_size);
-            workshopFile.size = size.value + size.type;
 
-            workshopFiles.push(workshopFile);
+        } catch (error)
+        {
+            continue;
         }
 
-    } catch (error)
-    {
-        return Promise.reject(error);
+        // 计算文件大小
+        let size = formatBytes(workshopFile.file_size);
+        workshopFile.size = size.value + size.type;
+
+        workshopFiles.push(workshopFile);
     }
 
     return workshopFiles;

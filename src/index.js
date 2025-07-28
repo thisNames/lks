@@ -13,6 +13,7 @@ const downloadVpk = require("./command/download_vpk");
 // 工具类
 const { isAdministrator, typeInt } = require("./class/Tools");
 const GC = require("./class/GlobalConfig");
+const LoggerSaver = require("./class/LoggerSaver");
 const Logger = require("./class/Logger");
 
 // 添加任务：
@@ -20,6 +21,8 @@ const Logger = require("./class/Logger");
 // 求和任务
 paramsMapping["add"].params.addTask("add", function (params, meta)
 {
+    const Logger = new LoggerSaver("Add_Task", meta.WORKER_PATH, singleMap.isSaveLog.include);
+
     let sum = 0;
     for (let index = 0; index < params.length; index++)
     {
@@ -27,7 +30,7 @@ paramsMapping["add"].params.addTask("add", function (params, meta)
         sum += Number.isNaN(element) ? 0 : element;
     }
 
-    console.log("run: ", sum);// TODO: debug line comment
+    Logger.info(`Sum of parameters: ${sum}`).close();
 
     return sum;
 });
@@ -51,15 +54,13 @@ paramsMapping["set:add"].params.addTask("set:add", function (params, meta)
 // 打印版本号
 paramsMapping["version"].params.addTask("print:version", function (params, meta)
 {
+    const Logger = new LoggerSaver("Version_Task", meta.WORKER_PATH, singleMap.isSaveLog.include);
     let package = require("../package.json");
-    Logger.info(package.version);
+    Logger.info(package.version).close();
 });
 
 // 命令帮助
-paramsMapping["help"].params.addTask("print:help", function (params, meta)
-{
-    printHelp(params, { ...meta, PMG: paramsMapping, SM: singleMap });
-});
+paramsMapping["help"].params.addTask("print:help", printHelp);
 
 // 打印全局配置
 paramsMapping["print:global:config"].params.addTask("print:global:config", printGlobalConfig);
@@ -106,5 +107,6 @@ process.addListener("exit", () =>
 
 module.exports = {
     paramsMap,
-    singleMap
+    singleMap,
+    paramsMapping
 }

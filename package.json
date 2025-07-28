@@ -19,6 +19,10 @@
     {
       "url": "https://gitee.com/nextall/lks",
       "type": "gitee"
+    },
+    {
+      "url": "2226531799@qq.com",
+      "type": "email"
     }
   ],
   "dependencies": {

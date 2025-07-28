@@ -1,5 +1,3 @@
-const { formatBytes } = require("./Tools");
-
 /**
  *  创意工坊文件示例
  */
@@ -42,11 +40,30 @@ class WorkshopFile
             set(target, key, value)
             {
                 // 拒绝空值
-                if (value === undefined || value === null) throw new Error(`[${key}] try to set a null value`);
-                // 无效的 Number
-                if (typeof value == "number" && !Number.isFinite(value)) throw new Error(`[${key}] is NaN or Infinity`);
+                if (value === undefined || value === null)
+                {
+                    throw new Error(`[${key}] 尝试设置空值`);
+                }
 
-                Reflect.set(target, key, value);
+                // 无效的 Number
+                if (typeof value === "number" && (!Number.isFinite(value) || isNaN(value)))
+                {
+                    throw new Error(`[${key}] 是 NaN 或 Infinity`);
+                }
+
+                // 检查字符串类型，防止注入攻击或空字符串
+                if (typeof value === "string" && value.trim() === "")
+                {
+                    throw new Error(`[${key}] 是空字符串`);
+                }
+
+                // 检查键是否存在于目标对象中，防止意外添加新属性
+                if (!Object.prototype.hasOwnProperty.call(target, key))
+                {
+                    throw new Error(`[${key}] 不是有效的属性`);
+                }
+
+                return Reflect.set(target, key, value);
             }
         });
 
