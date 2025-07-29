@@ -1,13 +1,16 @@
 /**
  *  src 入口文件
- *  所有命令任务统一注册代码
+ *  @version 0.0.1
  */
-const { paramsMapping, paramsMap, singleMap } = require("./command"); // 命令表
 
-// 工具类
-const { isAdministrator } = require("./class/Tools");
+const { PARAMS_MAPPINGS, PARAMS_MAP, SINGLE_MAP } = require("./command"); // 命令表
+
+// class
 const Logger = require("./class/Logger");
 
+//#region 初始化常量
+const START_TIME = Date.now();
+//#endregion
 // // 下载 Steam 创意工坊的文件（免费的）
 // paramsMapping["download:vpk"].params.addTask("download:vpk", downloadVpk);
 
@@ -28,14 +31,11 @@ const Logger = require("./class/Logger");
 // });
 
 // 程序结束
-const START_TIME = Date.now();
-process.addListener("exit", () =>
-{
-    Logger.info(`\r\nrunning time is ${Date.now() - START_TIME}ms`);
-});
+process.addListener("exit", () => Logger.info(`\r\nrunning time is ${Date.now() - START_TIME}ms`));
 
 module.exports = {
-    paramsMap,
-    singleMap,
-    paramsMapping
-}
+    PARAMS_MAP,
+    PARAMS_MAPPINGS,
+    SINGLE_MAP,
+};
+

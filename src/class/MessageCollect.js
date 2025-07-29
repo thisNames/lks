@@ -1,9 +1,11 @@
 const fs = require("node:fs");
 const pt = require("node:path");
 
-const { getDate, getRealTime } = require("./Tools");
+const Tools = require("./Tools");
+
 /**
  *  日志收集类
+ *  @version 0.0.1
  */
 class MessageCollect
 {
@@ -31,7 +33,7 @@ class MessageCollect
             this.path = fs.mkdirSync(this.path, { recursive: true });
         }
 
-        this.filename = this.name.concat("_", getDate(), "_", Date.now(), ".log");
+        this.filename = this.name.concat("_", Tools.getDate(), "_", Date.now(), ".log");
         this.filePath = pt.resolve(this.path, this.filename);
         this.fr = fs.openSync(this.filePath, "w");
 
@@ -61,7 +63,7 @@ class MessageCollect
      */
     collect(you, message)
     {
-        const m = `[${getRealTime()}] ${you}: ${message}\r\n`;
+        const m = `[${Tools.getRealTime()}] ${you}: ${message}\r\n`;
 
         try
         {

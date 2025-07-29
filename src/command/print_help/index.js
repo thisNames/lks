@@ -90,6 +90,10 @@ module.exports = function (params, meta)
     for (let i = 0; i < params.length; i++)
     {
         let key = params[i];
+
+        // 排除默认参数占位符
+        if (key == singleMap.dvp.key) continue;
+
         let paramOption = __paramsMap.find(pm => pm.mapKey == key || pm.params.key == key);
 
         // 如果没有找到对应的参数

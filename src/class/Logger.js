@@ -1,5 +1,6 @@
 /**
  *  打印类
+ *  @version 0.0.1
  */
 class Logger
 {

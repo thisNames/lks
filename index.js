@@ -1,85 +1,150 @@
+/**
+ *  @version 0.0.1
+ *  @description 主执行文件（入口）
+ */
+
 // class
-const { fillParams } = require("./src/class/Tools");
+const Params = require("./src/class/Params");
 
 // src index.js
-const { paramsMap, singleMap, paramsMapping } = require("./src/index");
+const { PARAMS_MAP, PARAMS_MAPPINGS, SINGLE_MAP } = require("./src");
 
 //#region 初始化常量
 const STATIC_META = {
-    __dirname,
-    __filename,
+    dirname: __dirname,
+    filename: __dirname,
     cwd: process.cwd(),
-    singleMap,
-    paramsMap,
-    paramsMapping
+    singleMap: SINGLE_MAP,
+    paramMappingMap: PARAMS_MAP,
+    paramsMapping: PARAMS_MAPPINGS,
+    startTime: Date.now()
 };
 //#endregion
 
-//#region init
-process.argv.splice(0, 2);
-const IGN = Object.values(singleMap);
-// 忽略参数
-process.argv = process.argv.filter(arg =>
+/**
+ *  填充指令参数
+ *  @version 0.0.1
+ *  @param {Params} pm 参数命令对象
+ *  @param {String} dvpKey 默认参数占位符
+ *  @returns {Params} 原来的参数命令对象
+ */
+function fillParams(pm, dvpKey)
 {
-    const single = IGN.find(single => single.key == arg);
-
-    if (single)
+    // 如果值为小于0，那么后面的参数都将作为 params 的参数，defaults 参数将不会生效
+    if (pm.count < 0)
     {
-        single.include = true;
-        return single.key == singleMap.isUseDefaultValue.key;
+        while (process.argv.length > 0)
+        {
+            let pv = process.argv.shift();
+            pm.params.push(pv);
+        }
+        return pm;
     }
 
-    return true;
-});
-//#endregion
-
-// main 运行
-while (process.argv.length > 0)
-{
-    let key = process.argv.shift();
-
-    // 通过 name 筛选
-    if (paramsMap.has(key))
+    // 填充参数
+    for (let i = 0; i < pm.count; i++)
     {
-        console.log("map key run: ", key);// TODO: debug line comment
+        if (process.argv.length < 1)
+        {
+            // 使用默认参数
+            pm.params.push(pm.defaults[i]);
+            continue;
+        }
+        // 使用命令参数
+        let pv = process.argv.shift();
+        pm.params.push(pv == dvpKey ? pm.defaults[i] : pv);
+    }
 
-        let pm = paramsMap.get(key);
+    return pm;
+}
+
+/**
+ *  初始化命令
+ *  @version 0.0.1
+ *  @param {Array<Params>} singles 忽略布尔命令
+ *  @param {String} ignoreKey 不跳过的 key
+ *  @returns {void}
+ */
+function initProcessArgs(singles, ignoreKey)
+{
+    // 去掉第一个参数和第二个参数，因为它们分别是 node 和入口文件路径 index.js
+    process.argv.splice(0, 2);
+
+    process.argv = process.argv.filter(arg =>
+    {
+        const single = singles.find(single => single.key == arg);
+
+        if (single)
+        {
+            single.include = true;
+            return single.key == ignoreKey;
+        }
+
+        return true;
+    });
+}
+
+/**
+ *  运行主函数
+ *  @version 0.0.1
+ *  @param {Map<String, Params>} paramsMap 参数命令映射表
+ *  @param {String} dvpKey 默认参数占位符
+ *  @param {Object} meta 静态数据对象
+ *  @returns {void}
+ */
+function running(paramsMap, dvpKey, meta)
+{
+    /** @type {Map<String, Params>} 将 params.key 缓存到 Map 中*/
+    const params = new Map();
+
+    for (let [mapKey, pm] of paramsMap.entries())
+    {
+        params.set(pm.key, pm);
+    }
+
+    // 解析参数并运行
+    while (process.argv.length > 0)
+    {
+        let key = process.argv.shift();
+        // 通过 mapKey || params.key 取值筛选
+        let pm = paramsMap.get(key) || params.get(key);
+
+        if (!pm || pm.include) continue;
 
         pm.include = true;
 
-        // 填充参数
-        fillParams(pm, singleMap.isUseDefaultValue.key);
-
-        // 运行任务
-        console.log(pm);// TODO: debug line comment
-
-        pm.running({ key, ...STATIC_META });
-
-        // 结束
-        paramsMap.delete(key);
-        continue;
-    }
-
-    // 通过 params.key 筛选
-    for (const p of paramsMap.entries())
-    {
-        let [pmKey, pm] = p;
-        if (pm.key != key && pm.key != "*") continue;
-
-        console.log("map value run: ", pm.key);// TODO: debug line comment
-
-        pm.include = true;
-
-        // 填充参数
-        fillParams(pm, singleMap.isUseDefaultValue.key);
-
-        // 运行任务
-        console.log(pm);// TODO: debug line comment
-
-        pm.running({ key, ...STATIC_META });
-
-        // 结束
-        paramsMap.delete(pmKey);
-        break;
+        console.log(pm); // TODO: debug line comment
+        // 填充参数 运行任务
+        fillParams(pm, dvpKey).running({ key, ...meta });
     }
 }
+
+/**
+ *  running 运行结束
+ *  @version 0.0.1
+ *  @returns {void}
+ */
+function end()
+{
+    // 啥也不输出了 >A< >_< >V< ...
+}
+
+/**
+ *  运行主入口
+ *  @version 0.0.1
+ *  @returns {void}
+ */
+function main()
+{
+    // 初始化参数（去掉无关的参数）
+    initProcessArgs(Object.values(SINGLE_MAP), SINGLE_MAP.dvp.key);
+
+    // 运行任务
+    running(PARAMS_MAP, SINGLE_MAP.dvp.key, STATIC_META);
+
+    // 运行结束
+    end();
+}
+
+// 运行主入口
+main();

@@ -8,6 +8,7 @@ const ResponseData = require("./ResponseData");
 
 /**
  *  公共资源下载器，支持的协议：https, http
+ *  @version 0.0.1
  */
 class Download extends HttpRequest
 {

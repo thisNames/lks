@@ -1,5 +1,6 @@
 /**
  *  创意工坊文件示例
+ *  @version 0.0.1
  */
 class WorkshopFile
 {

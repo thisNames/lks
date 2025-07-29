@@ -1,5 +1,6 @@
 /**
  *  布尔命令参数类
+ *  @version 0.0.1
  */
 class Single
 {

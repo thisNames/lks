@@ -1,5 +1,6 @@
 /**
  *  响应数据对象类
+ *  @version 0.0.1
  */
 class ResponseData
 {

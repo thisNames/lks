@@ -2,6 +2,7 @@ const Params = require("./Params");
 
 /**
  *  参数命令映射表配置类
+ *  @version 0.0.1
  */
 class ParamsMapping
 {

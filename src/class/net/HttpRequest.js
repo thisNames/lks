@@ -3,6 +3,7 @@ const http = require("node:http");
 
 /**
  *  https, http 网络请求类
+ *  @version 0.0.1
  */
 class HttpsRequested
 {

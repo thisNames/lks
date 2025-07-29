@@ -3,6 +3,7 @@ const MessageCollect = require("./MessageCollect");
 
 /**
  *  日志保存类
+ *  @version 0.0.1
  */
 class LoggerSaver
 {

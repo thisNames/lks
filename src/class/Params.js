@@ -2,6 +2,7 @@ const Single = require("./Single");
 
 /**
  *  参数命令参数类
+ *  @version 0.0.1
  */
 class Params extends Single
 {

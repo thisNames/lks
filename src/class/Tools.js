@@ -3,10 +3,9 @@ const os = require("node:os");
 const readline = require("node:readline");
 const crypto = require("node:crypto");
 
-const Params = require("./Params");
-
 /**
  *  工具类
+ *  @version 0.0.2
  */
 class Tools
 {
@@ -15,42 +14,6 @@ class Tools
 
     }
 
-    /**
-     *  填充指令参数
-     *  @version 0.0.1
-     *  @param {Params} pm 参数命令对象
-     *  @param {String} isUseDefaultValueKey 是否使用默认参数
-     *  @returns {Params} 参数命令对象
-     */
-    static fillParams(pm, isUseDefaultValueKey)
-    {
-        // 如果值为小于0，那么后面的参数都将作为 params 的参数，defaults 参数将不会生效
-        if (pm.count < 0)
-        {
-            while (process.argv.length > 0)
-            {
-                let pv = process.argv.shift();
-                pm.params.push(pv);
-            }
-            return pm;
-        }
-
-        // 填充参数
-        for (let i = 0; i < pm.count; i++)
-        {
-            if (process.argv.length < 1)
-            {
-                // 使用默认参数
-                pm.params.push(pm.defaults[i]);
-                continue;
-            }
-            // 使用命令参数
-            let pv = process.argv.shift();
-            pm.params.push(pv == isUseDefaultValueKey ? pm.defaults[i] : pv);
-        }
-
-        return pm;
-    }
 
     /**
      *  生成文字注释

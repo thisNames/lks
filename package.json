@@ -1,12 +1,13 @@
 {
   "name": "lks",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "批量创建符号链接，工具包",
   "main": "index.js",
   "scripts": {},
   "keywords": [],
   "author": "animator70@outlook.com",
   "license": "MulanPSL2",
+  "type": "commonjs",
   "devDependencies": {
     "@types/cli-progress": "^3.11.6",
     "@types/node": "^18.19.120"

@@ -4,7 +4,7 @@ const LoggerSaver = require("../../class/LoggerSaver");
 const addition = new ParamsMapping("-a", {
     key: "--addition",
     count: 2,
-    defaults: [10, 20],
+    defaults: [0, 0],
     description: "将给定文件添加到目录中",
     example: "params_test_add.txt"
 }).addTask("--addition", (params, meta) =>
@@ -21,7 +21,7 @@ const addition = new ParamsMapping("-a", {
         sum += Number.isNaN(element) ? 0 : element;
     }
 
-    Logger.info(`Sum of parameters: ${sum}`).close();
+    Logger.prompt(`Sum of parameters: ${sum}`).close();
 
     return sum;
 });

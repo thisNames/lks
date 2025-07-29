@@ -1,5 +1,6 @@
 /**
  *  显示加载
+ *  @version 0.0.1
  */
 class Loading
 {
