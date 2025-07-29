@@ -95,7 +95,7 @@ module.exports = function (params, meta)
         // 如果没有找到对应的参数
         if (!paramOption)
         {
-            Logger.warn(`没有找到对应的参数 [${key}]`);
+            Logger.warn(`没有找到对应的命令 [${key}]`);
             continue;
         }
 

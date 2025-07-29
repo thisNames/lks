@@ -6,7 +6,7 @@ const addition = new ParamsMapping("-a", {
     count: 2,
     defaults: [10, 20],
     description: "将给定文件添加到目录中",
-    example: "params_download_steam_vpk.txt"
+    example: "params_test_add.txt"
 }).addTask("--addition", (params, meta) =>
 {
     const { singleMap, cwd } = meta;

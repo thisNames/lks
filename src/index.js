@@ -4,7 +4,6 @@
  */
 const { paramsMapping, paramsMap, singleMap } = require("./command"); // 命令表
 
-
 // 工具类
 const { isAdministrator } = require("./class/Tools");
 const Logger = require("./class/Logger");
