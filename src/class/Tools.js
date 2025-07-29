@@ -1,7 +1,7 @@
 const { execSync } = require("node:child_process");
 const os = require("node:os");
 const readline = require("node:readline");
-const crypto = require('node:crypto');
+const crypto = require("node:crypto");
 
 const Params = require("./Params");
 
@@ -77,7 +77,7 @@ class Tools
         {
             if (platform === "win32")
             {
-                // Windows: 使用 'net session' 检查管理员权限
+                // Windows: 使用 "net session" 检查管理员权限
                 execSync("net session", { stdio: "ignore" });
                 return true;
             } else
@@ -132,13 +132,13 @@ class Tools
 
     /**
      *  将字节(byte)转换为最合适的单位（KB、MB、GB）
-     *  @version 0.0.1
+     *  @version 0.0.2
      *  @param {number} bytes 字节数
-     *  @returns {{value: number, type: 'KB' | 'MB' | 'GB'}}
+     *  @returns {{value: number, type: "KB" | "MB" | "GB"}}
      */
     static formatBytes(bytes)
     {
-        if (typeof bytes !== 'number' || bytes < 0) throw new TypeError('bytes 必须为非负数字');
+        if (typeof bytes !== "number" || bytes < 0) return { value: 0, type: "B" };
 
         const KB = 1024;
         const MB = KB * 1024;
@@ -149,19 +149,19 @@ class Tools
         if (bytes < KB)
         {
             value = bytes;
-            type = 'B';
+            type = "B";
         } else if (bytes < MB)
         {
             value = bytes / KB;
-            type = 'KB';
+            type = "KB";
         } else if (bytes < GB)
         {
             value = bytes / MB;
-            type = 'MB';
+            type = "MB";
         } else
         {
             value = bytes / GB;
-            type = 'GB';
+            type = "GB";
         }
 
         // 保留两位小数
@@ -202,21 +202,21 @@ class Tools
      */
     static sanitizeFolderName(str, defaultName = "untitled")
     {
-        if (typeof str !== 'string') return '';
+        if (typeof str !== "string") return "";
 
         // 1. 定义非法字符集合（Windows + POSIX）
         //   Windows: <>:"/\|?*
-        //   Linux/macOS: 主要是 '/' 和 '\0'，但为统一体验，也去掉 <>:|?*"
+        //   Linux/macOS: 主要是 "/" 和 "\0"，但为统一体验，也去掉 <>:|?*"
         const illegalChars = /[<>:"/\\|?*\x00-\x1f]/g;
 
         // 2. 去掉非法字符、首尾空格/句点
-        let safe = str.replace(illegalChars, '').trim().replace(/^\.+|\.+$/g, ''); // 去掉首尾连续的句点
+        let safe = str.replace(illegalChars, "").trim().replace(/^\.+|\.+$/g, ""); // 去掉首尾连续的句点
 
         // 3. 处理 Windows 保留名称（CON, PRN, AUX, NUL, COM1..9, LPT1..9 等）
         const reserved = /^(CON|PRN|AUX|NUL|COM\d|LPT\d)(\.|$)/i;
         if (reserved.test(safe))
         {
-            safe = safe.replace(/^(.+)/, '_$1'); // 前面加下划线
+            safe = safe.replace(/^(.+)/, "_$1"); // 前面加下划线
         }
 
         // 4. 如果结果为空，给个默认名字
@@ -257,7 +257,7 @@ class Tools
         }
 
         const buffer = crypto.randomBytes((length + 1) >> 1); // 使用位运算优化 Math.ceil
-        return buffer.toString('hex').substring(0, length); // substring 性能略优于 slice
+        return buffer.toString("hex").substring(0, length); // substring 性能略优于 slice
     }
 
     /**
