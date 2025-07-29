@@ -11,29 +11,27 @@ class Params extends Single
      *  @param {Number} count 命令后面跟的参数个数。如果值为小于0，那么后面的参数都将作为 params，defaults 参数将不会生效
      *  @param {Array<String>} defaults 默认参数数组
      *  @param {string} description 简单命令描述
+     *  @param {Number} index 用于存储时排序，从大到小
      *  @param {String} [example=""] 命令帮助文档路径
      */
-    constructor(key, count, defaults, description, example = "")
+    constructor(key, count, defaults, description, index = 1, example = "")
     {
         super(key, description, example);
         this.count = count;
         this.defaults = defaults;
+        this.index = index;
 
-        /**
-         *  @type {Array<String>} 参数数组
-         */
+        /**  @type {Array<String>} 参数数组 */
         this.params = [];
 
-
-        /**
-         *  @type {Map<String, Function>} 任务数组
-         */
+        /** @type {Map<String, Function>} 任务数组 */
         this.__tasks = new Map();
 
-        /**
-         *  @type {Map<String, Object>} 任务结果数组
-         */
+        /** @type {Map<String, Object>} 任务结果数组 */
         this.__taskResults = new Map();
+
+        /** @type {String} 模块所在路径 */
+        this.__model = "";
     }
 
 
@@ -58,7 +56,7 @@ class Params extends Single
     {
         this.__tasks.forEach((v, k) =>
         {
-            this.__taskResults.set(k, v(this.params, meta));
+            this.__taskResults.set(k, v(this.params, meta, this));
         });
         return this;
     }

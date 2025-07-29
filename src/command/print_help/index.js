@@ -76,10 +76,11 @@ function printHelpDocument(key, helpDocumentPath, Logger)
 module.exports = function (params, meta)
 {
     // 参数命令映射表
-    let { singleMap, paramsMapping } = meta;
+    let { singleMap, cwd, paramsMapping } = meta;
+    let workerPath = cwd || process.cwd();
 
     // 日志
-    const Logger = new LoggerSaver("Print_Help", meta.WORKER_PATH, singleMap.isSaveLog.include);
+    const Logger = new LoggerSaver("Print_Help", workerPath, singleMap.isSaveLog.include);
 
     let printing = false;
 

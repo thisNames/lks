@@ -1,11 +1,19 @@
-// sec class tools
+// class
 const { fillParams } = require("./src/class/Tools");
 
-// src index command
+// src index.js
 const { paramsMap, singleMap, paramsMapping } = require("./src/index");
 
-// 初始化常量
-const WORKER_PATH = process.cwd();
+//#region 初始化常量
+const STATIC_META = {
+    __dirname,
+    __filename,
+    cwd: process.cwd(),
+    singleMap,
+    paramsMap,
+    paramsMapping
+};
+//#endregion
 
 //#region init
 process.argv.splice(0, 2);
@@ -45,7 +53,7 @@ while (process.argv.length > 0)
         // 运行任务
         console.log(pm);// TODO: debug line comment
 
-        pm.running({ key, WORKER_PATH, __dirname, __filename, paramsMap, singleMap, paramsMapping });
+        pm.running({ key, ...STATIC_META });
 
         // 结束
         paramsMap.delete(key);
@@ -68,7 +76,7 @@ while (process.argv.length > 0)
         // 运行任务
         console.log(pm);// TODO: debug line comment
 
-        pm.running({ key, WORKER_PATH, __dirname, __filename, PROGRAM_PATH, paramsMap, singleMap, paramsMapping });
+        pm.running({ key, ...STATIC_META });
 
         // 结束
         paramsMap.delete(pmKey);

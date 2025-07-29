@@ -1,78 +1,75 @@
 /**
- *  命令配置选项
- *  所有命令配置统一代码
+ *  注册命令参
  */
 
+const fs = require("node:fs");
+const path = require("node:path");
+
+const ParamsMapping = require("./class/ParamsMapping");
 const Params = require("./class/Params");
 const Single = require("./class/Single");
-const GC = require("./class/GlobalConfig");
+const Tools = require("./class/Tools");
+
+//#region 初始化常量
+/** @type {Array<ParamsMapping>} 参数命令映射表（参数命令列表）*/
+const PARAMS_MAPPINGS = [];
+
+/** @type {String} 命令模块根目录 */
+const COMMAND_PATH = path.join(__dirname, "command");
 
 /** @type {Map<String, Params>} 参数命令数组 */
-const paramsMap = new Map();
-
-//#region 参数命令映射表：设置参数命令映射表（优先匹配 mapKey；通配符命令 * 放在末尾）
-const paramsMapping = {
-    version: {
-        mapKey: "-v",
-        params: new Params("--version", 0, [], "显示当前版本")
-    },
-    help: {
-        mapKey: "-h",
-        params: new Params("--help", -1, [], "命令帮助，--help command1 command2 ... 可查看指定命令的帮助文档", "help.txt")
-    },
-    "print:global:config": {
-        mapKey: "-pgc",
-        params: new Params("--global:config", 0, [], "显示全局配置")
-    },
-    "set:recursionDeep": {
-        mapKey: "-sr",
-        params: new Params("--set:recursion", 1, [GC.recursionDeep], "设置递归最大深度", "params_set_recursion.txt")
-    },
-    "set:collectFileMaxCount": {
-        mapKey: "-scf",
-        params: new Params("--set:files", 1, [GC.collectFileMaxCount], "设置文件收集最大数量， 小于 1 则不做限制", "params_set_collect_file_max.txt")
-    },
-    "download:vpk": {
-        mapKey: "-dv",
-        params: new Params("--download:vpk", -1, [], "下载（免费的）Steam 创意工坊的文件", "params_download_steam_vpk.txt")
-    },
-    add: {
-        mapKey: "-a",
-        params: new Params("--add", 2, [0, 0], "相加（测试命令）", "params_test_add.txt")
-    },
-    "set:add": {
-        mapKey: "-sa",
-        params: new Params("--set:add", 1, [3], "设置相加参数个数（测试命令）值为 -1，则截取到末尾，默认参数在不生效", "params_test_set_add.txt")
-    },
-    "file:symlink": {
-        mapKey: null,
-        params: new Params("*", 1, [".vpk"], "文件创建符号链接，* 为文件所在的路径", "params_file_symlink.txt")
-    }
-};
+const PARAMS_MAP = new Map();
 //#endregion
 
-//#region 注册参数命令
-for (let key in paramsMapping)
-{
-    // mapKey
-    if (paramsMap.has(paramsMapping[key].mapKey))
-    {
-        let rs = `The key [${key}.mapKey] [${paramsMapping[key].mapKey}] command has defined`;
-        throw new Error(rs);
-    }
-    // params.key
-    if ([...paramsMap.values()].find(p => p.key == paramsMapping[key].params.key))
-    {
-        let rs = `The [${key}.params.key] [${paramsMapping[key].params.key}] command has defined`;
-        throw new Error(rs);
-    }
 
-    paramsMap.set(paramsMapping[key].mapKey, paramsMapping[key].params);
+//#region 获取模块
+const command = fs.readdirSync(COMMAND_PATH).filter(f => fs.statSync(path.join(COMMAND_PATH, f)).isDirectory());
+const models = command.map(f => `./command/${f}/command.js`);
+
+for (let i = 0; i < models.length; i++)
+{
+    const model = models[i];
+    const m = require(model);
+
+    if (!Array.isArray(m)) throw new TypeError(`Parameter type error (${model}), must return a [class/ParamsMapping] array`);
+
+    for (let j = 0; j < m.length; j++)
+    {
+        const paramsMapping = m[j];
+
+        if (!paramsMapping instanceof ParamsMapping) throw new TypeError(`Parameter type error (${model}), must return a [class/ParamsMapping]`);
+
+        paramsMapping.params.__model = model;
+        PARAMS_MAPPINGS.push(paramsMapping);
+    }
+}
+
+/** @type {Array<ParamsMapping>} 重复的参数命令对象*/
+const repDefParamsKeys = Tools.findDuplicates(PARAMS_MAPPINGS, p => p.params.key, false);
+
+/** @type {Array<ParamsMapping>} 重复的参数命令对象*/
+const repDefMapKeys = Tools.findDuplicates(PARAMS_MAPPINGS, p => p.mapKey, false);
+
+for (let i = 0; i < repDefMapKeys.length; i++)
+{
+    const paramsMapping = repDefParamsKeys[i];
+    throw new Error(`The "mapKey" command [${paramsMapping.mapKey}] is defined repeatedly in module ${paramsMapping.params.__model}`);
+}
+
+for (let i = 0; i < repDefParamsKeys.length; i++)
+{
+    const paramsMapping = repDefParamsKeys[i];
+    throw new Error(`The "params.key" command [${paramsMapping.mapKey}] is defined repeatedly in module ${paramsMapping.params.__model}`);
 }
 //#endregion
 
+
+//#region 注册参数命令
+PARAMS_MAPPINGS.sort((p1, p2) => p2.params.index - p1.params.index).forEach(paramsMapping => PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params));
+//#endregion
+
 //#region 布尔命令映射表：注册布尔命令（推荐使用参数命令实现）
-const singleMap = {
+const SINGLE_MAP = {
     isUseDefaultValue: new Single("$D", "占位符，表示使用默认参数（前提是有）", "bool_use_defaults.txt"),
     isRecursion: new Single("-R", "启用递归"),
     isSaveLog: new Single("-L", "为本次操作保存日志"),
@@ -81,7 +78,7 @@ const singleMap = {
 //#endregion
 
 module.exports = {
-    paramsMap,
-    paramsMapping,
-    singleMap
+    paramsMap: PARAMS_MAP,
+    paramsMapping: PARAMS_MAPPINGS,
+    singleMap: SINGLE_MAP
 }

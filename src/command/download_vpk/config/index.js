@@ -83,10 +83,28 @@ function printHeaders(headers, Logger)
     }
 }
 
+/**
+ *  保存请求头
+ *  @param {Object} headers 请求头对象
+ *  @returns {Boolean} 是否成功保存
+ *  @description 该函数会尝试将请求头对象转换为 JSON 字符串，如果成功则返回 true，否则返回 false
+ */
+function saverHeaders(headers)
+{
+    try
+    {
+        JSON.stringify(headers);
+        return true;
+    } catch (error)
+    {
+        return false;
+    }
+}
 module.exports = {
     loaderConfigForJsonOrJavaScript,
     setHeaders,
     deleteHeaders,
-    printHeaders
+    printHeaders,
+    saverHeaders
 };
 

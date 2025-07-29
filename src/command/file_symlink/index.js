@@ -5,7 +5,6 @@ const fs = require("node:fs");
 const pt = require("node:path");
 
 // class
-const MessageCollect = require("../../class/MessageCollect");
 const LoggerSaver = require("../../class/LoggerSaver");
 
 /**
@@ -122,15 +121,15 @@ module.exports = async function (params, meta)
 {
     // 解构参数
     let extName = params[0]; // 文件拓展名
-    let { key: sourceFolder, isRecursion, recursionDeep, collectFileMaxCount, isShowCollectFiles, singleMap } = meta;
+    let { key: sourceFolder, isRecursion, recursionDeep, collectFileMaxCount, isShowCollectFiles, singleMap, cwd } = meta;
+    // 获取工作路径，符号链接生成路径（目标）
+    let workerFolder = cwd || process.cwd();
 
-    const Logger = new LoggerSaver("File_Symlink_Task", meta.WORKER_PATH, singleMap.isSaveLog.include);
+    const Logger = new LoggerSaver("File_Symlink_Task", workerPath, singleMap.isSaveLog.include);
 
     // 判断源目录是否存在
     if (!fs.existsSync(sourceFolder)) return Logger.error(`ERROR: 没有这样的目录 => ${sourceFolder}`);
 
-    // 获取工作路径，符号链接生成路径（目标）
-    let workerFolder = meta.WORKER_PATH || pt.resolve("./");
     // 收集文件
     const files = collectFiles(sourceFolder, extName, isRecursion, recursionDeep, collectFileMaxCount);
 

@@ -259,6 +259,39 @@ class Tools
         const buffer = crypto.randomBytes((length + 1) >> 1); // 使用位运算优化 Math.ceil
         return buffer.toString('hex').substring(0, length); // substring 性能略优于 slice
     }
+
+    /**
+     *  查找数组中所有的重复值
+     *  @version 0.0.1
+     *  @param {Array<>} arr 需要查找重复值的数组
+     *  @param {Function} value 返回指定比较的比较内容
+     *  @param {boolean} all 是否返回所有的重复值，还是只返回其中一个。默认为 false，返回其中一个
+     *  @returns {Array} 查找结果数组
+     */
+    static findDuplicates(arr, value, all = false)
+    {
+        const result = [];
+        const seen = new Set();
+
+        for (let index = 0; index < arr.length; index++)
+        {
+            const element = arr[index];
+            let content = value(element, index, arr);
+
+            if (seen.has(content))
+            {
+                result.push(element);
+
+                if (!all) return result;
+            }
+            else
+            {
+                seen.add(content);
+            }
+        }
+
+        return result
+    }
 }
 
 module.exports = Tools;

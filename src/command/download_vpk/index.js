@@ -128,8 +128,8 @@ function printWorkshopFileDetail(index, workshopFile, Logger)
 async function awake(params, meta)
 {
     // 获取单例映射
-    const { singleMap, WORKER_PATH } = meta;
-    const workerFolder = WORKER_PATH || process.cwd();
+    const { singleMap, cwd } = meta;
+    const workerFolder = cwd || process.cwd();
 
     // 日志
     const Logger = new LoggerSaver("DownloadVPK", pt.resolve("./"), singleMap.isSaveLog.include);
@@ -159,7 +159,7 @@ async function awake(params, meta)
 
     // Steam API 查询操作
     /** @type {Array<WorkshopFile>} */
-    const workshopFiles = await useSteamApiSearch([...ids]).catch(error => ({ error }));
+    const workshopFiles = await useSteamApiSearch([...ids], REQUEST_HEADERS).catch(error => ({ error }));
 
     // 搜索失败
     if (!Array.isArray(workshopFiles) || workshopFiles.error)

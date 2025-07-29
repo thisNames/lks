@@ -5,15 +5,16 @@ const HttpRequest = require("../../class/net/HttpRequest");
 const ResponseData = require("../../class/net/ResponseData");
 const { formatBytes } = require("../../class/Tools");
 
+//#region 初始化常量
 const REQUEST_API = require("./api");
-const REQUEST_HEADERS = require("./headers");
+//#endregion
 
 /**
  *  使用 Steam API 搜索
  *  @param {Array<String>} ids id 数组
  *  @returns {Promise<ResponseData>}
  */
-async function search(ids)
+async function search(ids, REQUEST_HEADERS)
 {
     // 创建请求器
     const requester = new HttpRequest(new URL(REQUEST_API.Steam_GetPublishedFileDetails_API), "POST", REQUEST_HEADERS);
@@ -66,7 +67,7 @@ async function search(ids)
  *  @param {Array<String>} ids id 数组
  *  @returns {Promise<Array<WorkshopFile>>} 一个 Mod 对象
  */
-module.exports = async function (ids)
+module.exports = async function (ids, REQUEST_HEADERS)
 {
     /** @type {Array<WorkshopFile>} 工坊文件集合 */
     const workshopFiles = [];
