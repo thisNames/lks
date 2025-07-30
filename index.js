@@ -106,16 +106,16 @@ function running(paramsMap, dvpKey, meta)
     while (process.argv.length > 0)
     {
         let key = process.argv.shift();
-        // 通过 mapKey || params.key 取值筛选
-        let pm = paramsMap.get(key) || params.get(key);
+        // 通过 mapKey || params.key || * 通配符参数命令 取值筛选
+        let pm = paramsMap.get(key) || params.get(key) || params.get("*");
 
         if (!pm || pm.include) continue;
 
         pm.include = true;
 
-        console.log(pm); // TODO: debug line comment
         // 填充参数 运行任务
         fillParams(pm, dvpKey).running({ key, ...meta });
+        console.log(pm); // TODO: debug line comment
     }
 }
 
