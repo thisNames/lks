@@ -5,6 +5,8 @@ const fs = require("node:fs");
 const pt = require("node:path");
 
 const LoggerSaver = require("../../class/LoggerSaver");
+const MainRunningMeta = require("../../class/MainRunningMeta");
+const Params = require("../../class/Params");
 
 /**
  *  打印简单描述
@@ -71,9 +73,10 @@ function printHelpDocument(key, helpDocumentPath, Logger)
 }
 /**
  *  @param {Array<String>} params 参数数组
- *  @param {Object} meta meta
+ *  @param {MainRunningMeta} meta meta
+ *  @param {Params} __this 当前运行的参数命令对象
  */
-module.exports = function (params, meta)
+module.exports = function (params, meta, __this)
 {
     // 参数命令映射表
     let { singleMap, cwd, paramsMappings } = meta;

@@ -1,24 +1,23 @@
 /**
- *  @version 0.0.1
+ *  @version 0.0.2
  *  @description 主执行文件（入口）
  */
 
 // class
 const Params = require("./src/class/Params");
+const MainRunningMeta = require("./src/class/MainRunningMeta");
 
 // src index.js
 const { PARAMS_MAP, PARAMS_MAPPINGS, SINGLE_MAP } = require("./src");
 
 //#region 初始化常量
-const STATIC_META = {
+const STATIC_META = new MainRunningMeta({
     dirname: __dirname,
-    filename: __dirname,
-    cwd: process.cwd(),
+    filename: __filename,
     singleMap: SINGLE_MAP,
     paramsMap: PARAMS_MAP,
-    paramsMappings: PARAMS_MAPPINGS,
-    startTime: Date.now()
-};
+    paramsMappings: PARAMS_MAPPINGS
+});
 //#endregion
 
 /**
@@ -86,10 +85,10 @@ function initProcessArgs(singles, ignoreKey)
 
 /**
  *  运行主函数
- *  @version 0.0.1
+ *  @version 0.0.2
  *  @param {Map<String, Params>} paramsMap 参数命令映射表
  *  @param {String} dvpKey 默认参数占位符
- *  @param {Object} meta 静态数据对象
+ *  @param {MainRunningMeta} meta 静态数据对象
  *  @returns {void}
  */
 function running(paramsMap, dvpKey, meta)
@@ -114,7 +113,7 @@ function running(paramsMap, dvpKey, meta)
         pm.include = true;
 
         // 填充参数 运行任务
-        fillParams(pm, dvpKey).running({ key, ...meta });
+        fillParams(pm, dvpKey).running({ ...meta, key });
         console.log(pm); // TODO: debug line comment
     }
 }
