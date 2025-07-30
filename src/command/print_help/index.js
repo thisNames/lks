@@ -76,7 +76,7 @@ function printHelpDocument(key, helpDocumentPath, Logger)
 module.exports = function (params, meta)
 {
     // 参数命令映射表
-    let { singleMap, cwd, paramsMapping } = meta;
+    let { singleMap, cwd, paramsMappings } = meta;
     let workerPath = cwd || process.cwd();
 
     // 日志
@@ -86,7 +86,7 @@ module.exports = function (params, meta)
 
     params = [...new Set(params)];
     // 指令参数
-    let __paramsMap = Object.values(paramsMapping);
+    let __paramsMap = Object.values(paramsMappings);
     for (let i = 0; i < params.length; i++)
     {
         let key = params[i];
@@ -137,7 +137,7 @@ module.exports = function (params, meta)
 
     if (params.length < 1 && !printing)
     {
-        printDescription(paramsMapping, singleMap, Logger);
+        printDescription(paramsMappings, singleMap, Logger);
     }
 
     Logger.close();

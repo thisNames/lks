@@ -15,8 +15,8 @@ const STATIC_META = {
     filename: __dirname,
     cwd: process.cwd(),
     singleMap: SINGLE_MAP,
-    paramMappingMap: PARAMS_MAP,
-    paramsMapping: PARAMS_MAPPINGS,
+    paramsMap: PARAMS_MAP,
+    paramsMappings: PARAMS_MAPPINGS,
     startTime: Date.now()
 };
 //#endregion

@@ -5,7 +5,7 @@ const addition = new ParamsMapping("-a", {
     key: "--addition",
     count: 2,
     defaults: [0, 0],
-    description: "将给定文件添加到目录中",
+    description: "累计加法（测试命令）",
     example: "params_test_add.txt"
 }).addTask("--addition", (params, meta) =>
 {
@@ -30,7 +30,7 @@ const set_addition = new ParamsMapping("-sad", {
     key: "--set-addition",
     count: 1,
     defaults: [2],
-    description: "设置求和任务的参数的长度",
+    description: "设置累计加法的参数长度（测试命令）",
     example: "params_test_set_add.txt"
 });
 

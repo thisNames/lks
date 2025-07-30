@@ -3,7 +3,7 @@ const MessageCollect = require("./MessageCollect");
 
 /**
  *  日志保存类
- *  @version 0.0.1
+ *  @version 0.0.2
  */
 class LoggerSaver
 {
@@ -34,29 +34,28 @@ class LoggerSaver
         if (this.__logFile)
         {
             this.__logFile.close();
-            this.__logFile = null;
         }
     }
 
     /** 工具方法 */
-    log(color, ...args)
+    __log(color, ...args)
     {
+        let message = args.map(s =>
+        {
+            if (typeof s === "string") return s;
+            if (typeof s === "object") return JSON.stringify(s);
+            if (typeof s === "function") return s.toString();
+            return String(s);
+        }).join(" ");
+
         // 如果启用保存日志
         if (this.__logFile)
         {
-            let message = args.map(s =>
-            {
-                if (typeof s === "string") return s;
-                if (typeof s === "object") return JSON.stringify(s);
-                if (typeof s === "function") return s.toString();
-                return String(s);
-            }).join(" ");
-
             // 保存日志
             this.__logFile.collect(this.filename, message);
         }
 
-        console.log(`${color}${args.join(' ')}${Logger.RESET}`);
+        console.log(`${color}${message}${Logger.RESET}`);
 
         return this;
     }
@@ -64,37 +63,37 @@ class LoggerSaver
     /** 信息 */
     info(...args)
     {
-        return this.log(Logger.RESET, ...args);
+        return this.__log(Logger.RESET, ...args);
     }
 
     /** 成功 */
     success(...args)
     {
-        return this.log(Logger.GREEN, ...args);
+        return this.__log(Logger.GREEN, ...args);
     }
 
     /** 警告 */
     warn(...args)
     {
-        return this.log(Logger.YELLOW, ...args);
+        return this.__log(Logger.YELLOW, ...args);
     }
 
     /** 错误 */
     error(...args)
     {
-        return this.log(Logger.RED, ...args);
+        return this.__log(Logger.RED, ...args);
     }
 
     /** 提示 */
     prompt(...args)
     {
-        return this.log(Logger.CYAN, ...args);
+        return this.__log(Logger.CYAN, ...args);
     }
 
     /** 空一行 */
     line()
     {
-        return this.log(Logger.RESET);
+        return this.__log(Logger.RESET);
     }
 
 }
