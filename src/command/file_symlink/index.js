@@ -6,6 +6,7 @@ const pt = require("node:path");
 
 // class
 const LoggerSaver = require("../../class/LoggerSaver");
+const GlobalConfig = require("../../class/GlobalConfig");
 
 /**
  *  收集文件
@@ -107,7 +108,8 @@ async function createSymlink(files, workerFolder, progress)
 
 /**
  *  @param {Array<String>} files 文件集合
- *   @param {LoggerSaver} Logger 日志记录器
+ *  @param {LoggerSaver} Logger 日志记录器
+ *  @returns {LoggerSaver} 原来的日志记录器
  */
 function printCollectFiles(files, Logger)
 {
@@ -115,17 +117,26 @@ function printCollectFiles(files, Logger)
     let counted = `counted: total is ${files.length}`;
     files.forEach(filename => Logger.info(filename));
     Logger.success(counted);
+
+    return Logger;
 }
 
 module.exports = async function (params, meta)
 {
     // 解构参数
     let extName = params[0]; // 文件拓展名
-    let { key: sourceFolder, isRecursion, recursionDeep, collectFileMaxCount, isShowCollectFiles, singleMap, cwd } = meta;
+    let { key: sourceFolder, singleMap, cwd } = meta;
+
+    let isRecursion = singleMap.isRecursion.include;
+    let isShowCollectFiles = singleMap.isShowCollectFiles.include;
+    let isSaveLog = singleMap.isSaveLog.include;
+    let recursionDeep = GlobalConfig.recursionDeep;
+    let collectFileMaxCount = GlobalConfig.collectFileMaxCount;
+
     // 获取工作路径，符号链接生成路径（目标）
     let workerFolder = cwd || process.cwd();
 
-    const Logger = new LoggerSaver("File_Symlink_Task", workerPath, singleMap.isSaveLog.include);
+    const Logger = new LoggerSaver("File_Symlink_Task", workerFolder, isSaveLog);
 
     // 判断源目录是否存在
     if (!fs.existsSync(sourceFolder)) return Logger.error(`ERROR: 没有这样的目录 => ${sourceFolder}`);
