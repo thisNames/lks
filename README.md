@@ -5,12 +5,29 @@
 
 ## 开发规范
 ### 目录
-- `index.js` 整个程序的入口文件
+- `index.js` 主执行文件（入口）
 - `/src` 源码目录
+- `/src/index.js` src 入口文件
+- `/src/command.js` 自动注册参数命令模块
 - `/src/class` 所有公共类的存放目录
-- `/src/command/<功能名称>` 实现功能的模块目录（目录的名称就是功能的名称）
-- `/src/command.js` 所有命令配置统一代码
-- `/src/index.js` 所有命令任务注册统一代码
+- `/src/command/<功能模块名称>` 实现功能的模块目录（目录的名称就是功能的名称）
+
+### 功能模块定义：
+- 模块里必须要有一个 command.js 文件
+- command.js 并且返回一个数组，数组项是参数命令映射表配置类 `（class/ParamsMapping）`
+- 例如：
+```js
+const ParamsMapping = require("../../class/ParamsMapping");
+// 定义
+const version = new ParamsMapping("-v", {
+    key: "--version",
+    count: 0,
+    defaults: [],
+    description: "显示当前版本"
+}).addTask("print_version", (params, meta, __this) => require("./index")(params, meta, __this));
+// 暴露
+module.exports = [version];
+```
 
 ### 引用
 - 只能外面的引用里面的 js（或者同级目录），里面的不能跳出来引用外面的 js。（class 除外）

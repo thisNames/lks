@@ -2,13 +2,13 @@ const Params = require("./Params");
 
 /**
  *  参数命令映射表配置类
- *  @version 0.0.1
+ *  @version 0.0.2
  */
 class ParamsMapping
 {
     /**
      *  @param {String} mapKey 参数命令键
-     *  @param {Params} params params 属性
+     *  @param {Params} params params 配置属性
      */
     constructor(mapKey, params)
     {
@@ -18,7 +18,7 @@ class ParamsMapping
         this.mapKey = mapKey;
 
         /** @type {Params} */
-        this.params = new Params(params.key, params.count, params.defaults, params.description, params.index, params.example || "");
+        this.params = new Params(params.key, params.count, params.defaults, params.description, params.index || 1, params.example || "");
     }
 
     /**
