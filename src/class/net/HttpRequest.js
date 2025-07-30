@@ -37,18 +37,18 @@ class HttpsRequested
     */
     request(body, timeout = 60000)
     {
+        // 请求配置
+        const option = {
+            method: this.method,
+            headers: this.headers,
+            timeout: timeout,
+            rejectUnauthorized: false
+        };
+
         return new Promise((res, rej) =>
         {
             // 检测协议
             if (!this.__https) return rej(`request unsupported protocols: ${this.origin.protocol}`);
-
-            // 请求配置
-            const option = {
-                method: this.method,
-                headers: this.headers,
-                timeout: timeout,
-                rejectUnauthorized: false
-            };
 
             // 创建请求对象
             const request = this.__https.request(this.origin, option, response => res(response));

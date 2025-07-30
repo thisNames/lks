@@ -9,19 +9,11 @@ const LoggerSaver = require("../../class/LoggerSaver");
 const Download = require("../../class/net/Download");
 const WorkshopFile = require("../../class/WorkshopFile");
 const Loading = require("../../class/Loading");
-const { terminalInput, sanitizeFolderName, formatBytes, validURL, generateHashId } = require("../../class/Tools");
-//#endregion
+const Tools = require("../../class/Tools");
 
-//#region 内置模块
-// Steam API
 const useSteamApiSearch = require("./steam_api");
-// 配置加载器
-const { loaderConfigForJsonOrJavaScript } = require("./config");
-//#endregion
+const REQUEST_HEADERS = require("./headers.js");
 
-//#region 初始化常量
-// 请求头
-const REQUEST_HEADERS = loaderConfigForJsonOrJavaScript("./request_headers.json", "./request_headers.js");
 //#endregion
 
 /**
@@ -33,27 +25,26 @@ const REQUEST_HEADERS = loaderConfigForJsonOrJavaScript("./request_headers.json"
 async function downloading(workshopFile, workerFolder)
 {
     // 规范化目录名称
-    let title = sanitizeFolderName(workshopFile.title, workshopFile.id);
+    let title = Tools.sanitizeFolderName(workshopFile.title, workshopFile.id);
     // 新建的目录
     let folder = pt.join(workerFolder, title);
     // 文件名称
     let filename = workshopFile.id + pt.extname(workshopFile.filename);
 
-    // 处理路径
-    if (!fs.existsSync(folder))
-    {
-        fs.mkdirSync(folder);
-    }
-    else if (fs.statSync(folder).isFile())
-    {
-        folder = folder + "_" + generateHashId(8);
-    }
+    //#region 处理路径路径
+    let isPathExist = fs.existsSync(folder); // false
 
+    if (isPathExist && fs.statSync(folder).isFile()) return Promise.reject(`ERROR: 此路径已存在，无法覆盖 => ${folder}`);
+
+    !isPathExist && fs.mkdirSync(folder);
+    //#endregion
+
+    //#region 下载行为
     // 创建一个下载器
     const download = new Download(new URL(workshopFile.file_url), folder, filename, REQUEST_HEADERS);
 
     // 初始化大小
-    const initSize = formatBytes(workshopFile.file_size);
+    const initSize = Tools.formatBytes(workshopFile.file_size);
 
     // 创建一个单进度条
     const barComplete = "完成";
@@ -79,7 +70,7 @@ async function downloading(workshopFile, workerFolder)
     // 【实时进度】
     download.listener(Download.EventTypeProgress, (current, total) =>
     {
-        let size = formatBytes(current);
+        let size = Tools.formatBytes(current);
         bar.update(current, { current: size.value + size.type, complete: current >= total ? barComplete : barIncomplete });
     });
 
@@ -97,15 +88,17 @@ async function downloading(workshopFile, workerFolder)
 
     // 下载成功
     bar.stop();
+    //#endregion
 
+    //#region 生成 meta.json
     try
     {
-        // 生成 meta.json
         fs.writeFileSync(pt.join(folder, "meta.json"), JSON.stringify(workshopFile), { encoding: "utf-8", flag: "w" });
     } catch (error)
     {
         return Promise.reject(`ERROR: 写入 meta.json 失败 => ${error.message}`);
     }
+    //#endregion
 
     return Promise.resolve(`下载成功，保存至 => ${response.data.savePath}`);
 }
@@ -120,49 +113,71 @@ function printWorkshopFileDetail(index, workshopFile, Logger)
 {
     Logger.line().warn(index).success(workshopFile.title.trim()).prompt(`[ID: ${workshopFile.id}] [Size: ${workshopFile.size}]`);
 }
+
+/**
+ *  验证参数，必须数字字符串
+ *  @param {Array<String>} params 参数集合
+ *  @param {LoggerSaver} Logger 日志记录器
+ *  @return {Array<String>} ids 集合
+ */
+function ivalParams(params, Logger)
+{
+    const ids = new Set();
+    const idReg = /^\d+$/;
+
+    if (params.length < 1)
+    {
+        Logger.error("ERROR: 必须至少有一个参数 id/url");
+        return [];
+    }
+
+    for (let i = 0; i < params.length; i++)
+    {
+        let id = params[i];
+        let origin = Tools.validURL(id);
+
+        id = origin ? origin.searchParams.get("id") : id;
+
+        if (ids.has(id)) continue
+        if (!idReg.test(id))
+        {
+            Logger.error(`ERROR: 第${i + 1}个参数的 id 不合法，请重新输入`);
+            return [];
+        }
+
+        ids.add(id);
+    }
+
+    return [...ids];
+}
+
 /**
  *  下载 Steam 创意工坊的文件（免费的）
  *  @param {Array<String>} params 参数数组
  *  @param {Object} meta 附加数据对象
  */
-async function awake(params, meta)
+async function main(params, meta, __this)
 {
     // 获取单例映射
     const { singleMap, cwd } = meta;
     const workerFolder = cwd || process.cwd();
+    let isSaveLog = singleMap.isSaveLog.include;
 
     // 日志
-    const Logger = new LoggerSaver("DownloadVPK", pt.resolve("./"), singleMap.isSaveLog.include);
+    const Logger = new LoggerSaver("DownloadVPK", pt.resolve("./"), isSaveLog);
 
-    //#region 参数检测
-    const ids = new Set();
+    const ids = ivalParams(params, Logger);
+    if (ids.length < 1) return;
 
-    if (params.length < 1 || !params[0]) return Logger.error("ERROR: 必须至少有一个参数 id/url");
-
-    const idReg = /^\d+$/;
-
-    for (let i = 0; i < params.length; i++)
-    {
-        let id = params[i];
-        let origin = validURL(id);
-
-        if (origin) id = origin.searchParams.get("id");
-
-        if (!idReg.test(id)) return Logger.error(`ERROR: 第${i + 1}个参数的 id 不合法，请重新输入`);
-
-        ids.add(id);
-    }
-    //#endregion
-
+    //#region Steam API 获取结果
     // 显示加载中
     const load = new Loading().start("搜索中...🔍");
 
-    // Steam API 查询操作
     /** @type {Array<WorkshopFile>} */
-    const workshopFiles = await useSteamApiSearch([...ids], REQUEST_HEADERS).catch(error => ({ error }));
+    const workshopFiles = await useSteamApiSearch(ids, REQUEST_HEADERS).catch(error => ({ error }));
 
     // 搜索失败
-    if (!Array.isArray(workshopFiles) || workshopFiles.error)
+    if (workshopFiles.error || !Array.isArray(workshopFiles))
     {
         load.stop(false, "搜索失败");
         return Logger.error(`ERROR: ${workshopFiles.error || "未知错误"}`);
@@ -173,18 +188,20 @@ async function awake(params, meta)
 
     // 搜索成功
     load.stop(true, "搜索成功");
+    //#endregion
 
-    // 显示
+    //#region 显示结果
     workshopFiles.forEach((workshopFile, index) => printWorkshopFileDetail(index + 1, workshopFile, Logger));
 
-    // 询问
+    // 询问监听终端输入
     Logger.line().info("确认下载 [yes/y][on]");
 
-    // 监听终端输入
-    const terminal = await terminalInput().catch(m => m);
-    if (!(terminal == "yes" || terminal == "y")) return Logger.warn("取消下载");
+    const terminal = await Tools.terminalInput().catch(m => m);
 
-    // 开始下载
+    if (!(terminal == "yes" || terminal == "y")) return Logger.warn("取消下载");
+    //#endregion
+
+    //#region 开始下载
     for (let i = 0; i < workshopFiles.length; i++)
     {
         const workshopFile = workshopFiles[i];
@@ -192,8 +209,9 @@ async function awake(params, meta)
         printWorkshopFileDetail(i + 1, workshopFile, Logger);
         await downloading(workshopFile, workerFolder).then(s => Logger.line().success(s)).catch(r => Logger.line().error(r));
     }
+    //#endregion
 
     Logger.close();
 }
 
-module.exports = awake;
+module.exports = main;

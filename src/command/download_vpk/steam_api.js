@@ -3,21 +3,19 @@ const querystring = require("node:querystring");
 const WorkshopFile = require("../../class/WorkshopFile");
 const HttpRequest = require("../../class/net/HttpRequest");
 const ResponseData = require("../../class/net/ResponseData");
-const { formatBytes } = require("../../class/Tools");
+const Tools = require("../../class/Tools");
 
-//#region 初始化常量
 const REQUEST_API = require("./api");
-//#endregion
 
 /**
  *  使用 Steam API 搜索
  *  @param {Array<String>} ids id 数组
  *  @returns {Promise<ResponseData>}
  */
-async function search(ids, REQUEST_HEADERS)
+async function search(ids, requestHeaders)
 {
     // 创建请求器
-    const requester = new HttpRequest(new URL(REQUEST_API.Steam_GetPublishedFileDetails_API), "POST", REQUEST_HEADERS);
+    const requester = new HttpRequest(new URL(REQUEST_API.Steam_GetPublishedFileDetails_API), "POST", requestHeaders);
 
     // itemcount=1&publishedfileids[0]=id 填充参数
     const form = { itemcount: ids.length };
@@ -25,7 +23,7 @@ async function search(ids, REQUEST_HEADERS)
     const requestBody = querystring.stringify(form);
 
     // 获取响应对象 | error
-    const incomingMessage = await requester.request(requestBody).catch(error => ({ error }));
+    const incomingMessage = await requester.request(requestBody, 60000).catch(error => ({ error }));
 
     // 请求失败
     if (incomingMessage.error) return Promise.reject(incomingMessage.error);
@@ -67,18 +65,18 @@ async function search(ids, REQUEST_HEADERS)
  *  @param {Array<String>} ids id 数组
  *  @returns {Promise<Array<WorkshopFile>>} 一个 Mod 对象
  */
-module.exports = async function (ids, REQUEST_HEADERS)
+module.exports = async function (ids, requestHeaders)
 {
     /** @type {Array<WorkshopFile>} 工坊文件集合 */
     const workshopFiles = [];
 
     // 搜索文件详情
-    const response = await search(ids).catch(error => ({ error }));
+    const response = await search(ids, requestHeaders).catch(error => ({ error }));
 
     // 搜索失败 | 404
     if (response.error || response.code != 200) return Promise.reject(`Search => ${response.error || "404 Not Found"}`);
 
-    // 尝试读取数据
+    //#region 尝试读取数据
     const details = response.data?.response?.publishedfiledetails;
 
     if (!Array.isArray(details)) return Promise.reject("Invalid API response format");
@@ -105,11 +103,12 @@ module.exports = async function (ids, REQUEST_HEADERS)
         }
 
         // 计算文件大小
-        let size = formatBytes(workshopFile.file_size);
+        let size = Tools.formatBytes(workshopFile.file_size);
         workshopFile.size = size.value + size.type;
 
         workshopFiles.push(workshopFile);
     }
+    //#endregion
 
-    return workshopFiles;
+    return Promise.resolve(workshopFiles);
 }
