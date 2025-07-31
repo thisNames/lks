@@ -83,7 +83,7 @@ module.exports = function (params, meta, __this)
     let workerPath = cwd || process.cwd();
 
     // 日志
-    const Logger = new LoggerSaver("Print_Help", workerPath, singleMap.isSaveLog.include);
+    const Logger = new LoggerSaver("Print_Help_Task", workerPath, singleMap.isSaveLog.include);
 
     let printing = false;
 

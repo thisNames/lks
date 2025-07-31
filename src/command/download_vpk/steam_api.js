@@ -1,8 +1,6 @@
 const querystring = require("node:querystring");
 
 const WorkshopFile = require("../../class/WorkshopFile");
-const HttpRequest = require("../../class/net/HttpRequest");
-const ResponseData = require("../../class/net/ResponseData");
 const Tools = require("../../class/Tools");
 
 const requestAPI = require("./lib/request");

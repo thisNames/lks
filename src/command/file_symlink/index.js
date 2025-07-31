@@ -7,6 +7,9 @@ const pt = require("node:path");
 // class
 const LoggerSaver = require("../../class/LoggerSaver");
 const GlobalConfig = require("../../class/GlobalConfig");
+const Tools = require("../../class/Tools");
+const MainRunningMeta = require("../../class/MainRunningMeta");
+const Params = require("../../class/Params");
 
 /**
  *  收集文件
@@ -121,7 +124,13 @@ function printCollectFiles(files, Logger)
     return Logger;
 }
 
-module.exports = async function (params, meta)
+/**
+ *  @description SymbolicLink（符号链接）命令，为指定的源目录生成符号链接
+ *  @param {Array<String>} params 运行参数
+ *  @param {MainRunningMeta} meta 主运行任务信息
+ *  @param {Params} __this 当前参数命令对象（内部使用）
+ */
+async function main(params, meta, __this)
 {
     // 解构参数
     let extName = params[0]; // 文件拓展名
@@ -136,10 +145,13 @@ module.exports = async function (params, meta)
     // 获取工作路径，符号链接生成路径（目标）
     let workerFolder = cwd || process.cwd();
 
+    // 检测是否是管理员运行
     const Logger = new LoggerSaver("File_Symlink_Task", workerFolder, isSaveLog);
 
+    if (!Tools.isAdministrator()) return Logger.error("你没有管理员权限，无法执行。").close();
+
     // 判断源目录是否存在
-    if (!fs.existsSync(sourceFolder)) return Logger.error(`ERROR: 没有这样的目录 => ${sourceFolder}`);
+    if (!fs.existsSync(sourceFolder)) return Logger.error(`ERROR: 没有这样的目录 => ${sourceFolder}`).close();
 
     // 收集文件
     const files = collectFiles(sourceFolder, extName, isRecursion, recursionDeep, collectFileMaxCount);
@@ -156,3 +168,5 @@ module.exports = async function (params, meta)
     let counted = `counted: total is ${result.length}, success is ${success}, fail is ${fail}`;
     Logger.success(counted).close();
 }
+
+module.exports = main;
