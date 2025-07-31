@@ -5,7 +5,7 @@ const crypto = require("node:crypto");
 
 /**
  *  工具类
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 class Tools
 {
@@ -254,6 +254,38 @@ class Tools
         }
 
         return result
+    }
+
+    /**
+     *  将数字转换为指定位数
+     *  @version 0.0.1
+     *  @param {number} num 数
+     *  @param {Number} base 被除数
+     *  @param {Array<String>} levels 层级
+     *  @returns {{value: number, type: String}}
+     */
+    static formatNumber(num, base, levels)
+    {
+        let value = 0, type = "";
+
+        if (typeof num != "number" || typeof base != "number" || num < 0 || base < 0) return { value, type };
+
+        for (let i = 0; i < levels.length; i++)
+        {
+            let l = levels[i];
+
+            value = num;;
+            type = l;
+
+            if (num <= base) break;
+
+            num = num / base;
+        }
+
+        // 保留两位小数
+        value = parseFloat(value.toFixed(2));
+
+        return { value, type };
     }
 }
 

@@ -8,7 +8,7 @@ const http = require("node:http");
 class HttpsRequested
 {
     /** @type {String} 支持的协议 */
-    static Protocols = { "http:": http, "https:": https }
+    static Protocols = { "http:": http, "https:": https };
 
     /**
     *  @param {URL} origin url object
@@ -54,16 +54,12 @@ class HttpsRequested
             const request = this.__https.request(this.origin, option, response => res(response));
 
             // 请求对象事件监听
-            request.on("timeout", () =>
-            {
-                let err = "request timeout";
-                rej(err);// 失败
-                request.destroy(new Error(err));
-            });
+            request.on("timeout", () => request.destroy(new Error("request timeout")));
             request.on("error", err => rej(`request error: ${err.message}`));// 失败
+            request.on("close", () => rej("error request close"));
 
             request.write(body, "utf-8");
-            request.end()
+            request.end();
         });
     }
 

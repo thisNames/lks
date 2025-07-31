@@ -1,6 +1,6 @@
 /**
  *  显示加载
- *  @version 0.0.1
+ *  @version 0.0.2
  */
 class Loading
 {
@@ -31,7 +31,7 @@ class Loading
             this.__spinner = setInterval(() =>
             {
                 // 计算经过的时间
-                let elapsed = ((Date.now() - this.__startTime) / 1000).toFixed(1);
+                let elapsed = ((Date.now() - this.__startTime) / 1000).toFixed(2);
                 let frame = this.frames[this.__index % this.frames.length];
 
                 process.stdout.write(`\r${frame} ${msg} ${elapsed}s`);
@@ -56,7 +56,7 @@ class Loading
             clearInterval(this.__spinner);
 
             let binggo = success ? "✅" : "❌";
-            let elapsed = ((Date.now() - this.__startTime) / 1000).toFixed(1);
+            let elapsed = ((Date.now() - this.__startTime) / 1000).toFixed(2);
 
             this.__spinner = null;
             this.__index = 0;

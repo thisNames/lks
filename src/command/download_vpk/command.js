@@ -1,7 +1,7 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 
-const download_vpk = new ParamsMapping("-dv", {
-    key: "--download-vpk",
+const download_vpk = new ParamsMapping("-dsv", {
+    key: "--downloads-vpk",
     count: -1,
     defaults: [],
     description: "下载（免费的）Steam 创意工坊的文件",
