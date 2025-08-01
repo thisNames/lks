@@ -3,7 +3,7 @@
  *  @version 0.0.2
  */
 
-const { PARAMS_MAP, SINGLE_MAP } = require("./command"); // 命令表
+const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./command"); // 命令表
 
 // class
 const Logger = require("./class/Logger");
@@ -23,4 +23,5 @@ process.addListener("exit", () =>
 module.exports = {
     PARAMS_MAP,
     SINGLE_MAP,
+    PARAMS_KEY_MAP
 };

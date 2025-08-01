@@ -8,14 +8,15 @@ const Params = require("./src/class/Params");
 const MainRunningMeta = require("./src/class/MainRunningMeta");
 
 // src index.js
-const { PARAMS_MAP, SINGLE_MAP } = require("./src");
+const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./src");
 
 //#region 初始化常量
 const STATIC_META = new MainRunningMeta({
     dirname: __dirname,
     filename: __filename,
     singleMap: SINGLE_MAP,
-    paramsMap: PARAMS_MAP
+    paramsMap: PARAMS_MAP,
+    paramsKeyMap: PARAMS_KEY_MAP
 });
 //#endregion
 
@@ -85,24 +86,20 @@ function initProcessArgs(singles, ignoreKey)
 /**
  *  运行主函数
  *  @version 0.0.2
- *  @param {Map<String, Params>} paramsMap 参数命令映射表
+ *  @param {Map<String, Params>} paramsMap 参数命令映射表 mapKey
+ *  @param {Map<String, Params>} paramKeyMap 参数命令映射表 params.key
  *  @param {String} dvpKey 默认参数占位符
  *  @param {MainRunningMeta} meta 静态数据对象
  *  @returns {void}
  */
-function running(paramsMap, dvpKey, meta)
+function running(paramsMap, dvpKey, meta, paramKeyMap)
 {
-    /** @type {Map<String, Params>} 将 params.key 缓存到 Map 中*/
-    let paramsCacheMap = new Map();
-
-    for (let pm of paramsMap.values()) paramsCacheMap.set(pm.key, pm);
-
     // 解析参数并运行
     while (process.argv.length > 0)
     {
         let key = process.argv.shift();
         // 通过 mapKey || params.key || * 通配符参数命令 取值筛选
-        let pm = paramsMap.get(key) || paramsCacheMap.get(key) || paramsCacheMap.get("*");
+        let pm = paramsMap.get(key) || paramKeyMap.get(key) || paramKeyMap.get("*");
 
         if (!pm || pm.include) continue;
 
@@ -112,9 +109,6 @@ function running(paramsMap, dvpKey, meta)
         fillParams(pm, dvpKey).running({ ...meta, key });
         console.log(pm); // TODO: debug line comment
     }
-
-    paramsCacheMap.clear();
-    paramsCacheMap = null;
 }
 
 /**
@@ -138,7 +132,7 @@ function main()
     initProcessArgs(Object.values(SINGLE_MAP), SINGLE_MAP.dvp.key);
 
     // 运行任务
-    running(PARAMS_MAP, SINGLE_MAP.dvp.key, STATIC_META);
+    running(PARAMS_MAP, SINGLE_MAP.dvp.key, STATIC_META, PARAMS_KEY_MAP);
 
     // 运行结束
     end();

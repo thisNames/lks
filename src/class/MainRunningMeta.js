@@ -4,7 +4,7 @@ const Single = require("./Single");
 
 /**
  *  @description 运行命令时的元数据信息对象，由入口文件定义数据
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 class MainRunningMeta
 {
@@ -28,11 +28,14 @@ class MainRunningMeta
         /** @type {String} 入口文件路径 */
         this.filename = meta.filename;
 
-        /** @type { {[key: string]: Single} } 布尔命令映射表 */
+        /** @type { {[key: string]: Single} } 布尔命令存储对象 */
         this.singleMap = meta.singleMap;
 
-        /** @type {Map<String, Params>} 参数命令数组 */
+        /** @type {Map<String, Params>} mapKey 参数命令映射表 */
         this.paramsMap = meta.paramsMap;
+
+        /** @type {Map<String, Params>} params.key 参数命令映射表 */
+        this.paramsKeyMap = meta.paramsKeyMap;
     }
 }
 

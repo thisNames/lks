@@ -6,7 +6,7 @@ const addition = new ParamsMapping("-a", {
     count: 2,
     defaults: [0, 0],
     description: "累计加法（测试命令）",
-    example: "params_test_add.txt"
+    example: "addition/params_test_add.txt"
 }).addTask("--addition", (params, meta) =>
 {
     const { singleMap, cwd } = meta;
@@ -26,12 +26,12 @@ const addition = new ParamsMapping("-a", {
     return sum;
 });
 
-const set_addition = new ParamsMapping("-sad", {
+const set_addition = new ParamsMapping("-sa", {
     key: "--set-addition",
     count: 1,
     defaults: [2],
     description: "设置累计加法的参数长度（测试命令）",
-    example: "params_test_set_add.txt"
+    example: "addition/params_test_set_add.txt"
 });
 
 set_addition.addTask("--set-addition", (params, meta) =>

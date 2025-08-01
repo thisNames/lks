@@ -7,10 +7,11 @@ const pt = require("node:path");
 const LoggerSaver = require("../../class/LoggerSaver");
 const MainRunningMeta = require("../../class/MainRunningMeta");
 const Params = require("../../class/Params");
+const Single = require("../../class/Single");
 
 /**
  *  打印简单描述
- *  @param {Object} PMG 参数命令映射表
+ *  @param {Map<String, Params>} PMG 参数命令映射表
  *  @param {Object} SM 布尔命令映射表
  *  @param {LoggerSaver} Logger LoggerSaver 实例
  */
@@ -18,14 +19,10 @@ function printDescription(PMG, SM, Logger)
 {
     // 参数命令
     Logger.info("参数命令")
-    for (let key in PMG)
+    for (let [mapKey, params] of PMG.entries())
     {
-        let pmgOption = PMG[key];
-        let mapKey = pmgOption.mapKey || "";
-        let { key: paramKey, description, defaults, count } = pmgOption.params;
-
-        Logger.info(`  ${mapKey}  ${paramKey}`);
-        Logger.info(`  \t${description}`);
+        Logger.info(`  ${mapKey || ""}  ${params.key}`);
+        Logger.info(`  \t${params.description}`);
     }
 
     // 布尔命令
@@ -78,69 +75,55 @@ function printHelpDocument(key, helpDocumentPath, Logger)
  */
 module.exports = function (params, meta, __this)
 {
-    // 参数命令映射表
-    let { singleMap, cwd, paramsMappings } = meta;
-    let workerPath = cwd || process.cwd();
+    const Logger = new LoggerSaver("Print_Help_Task", meta.cwd, meta.singleMap.isSaveLog.include);
+    const paramsSet = [...new Set(params)];
+    const commandPath = pt.join(meta.dirname, "src", "command");
 
-    // 日志
-    const Logger = new LoggerSaver("Print_Help_Task", workerPath, singleMap.isSaveLog.include);
+    /** @type {Map<String, Single>} */
+    let singleMap = new Map();
 
-    let printing = false;
-
-    params = [...new Set(params)];
-    // 指令参数
-    let __paramsMap = Object.values(paramsMappings);
-    for (let i = 0; i < params.length; i++)
+    if (params.length < 1)
     {
-        let key = params[i];
+        printDescription(meta.paramsMap, meta.singleMap, Logger);
+        Logger.close();
+        return;
+    }
 
-        // 排除默认参数占位符
-        if (key == singleMap.dvp.key) continue;
+    Object.values(meta.singleMap).forEach(sm => singleMap.set(sm.key, sm));
 
-        let paramOption = __paramsMap.find(pm => pm.mapKey == key || pm.params.key == key);
+    for (let i = 0; i < paramsSet.length; i++)
+    {
+        let key = paramsSet[i];
+        let singleOrParams = singleMap.get(key) || meta.paramsMap.get(key) || meta.paramsKeyMap.get(key);
 
         // 如果没有找到对应的参数
-        if (!paramOption)
+        if (!singleOrParams)
         {
             Logger.warn(`没有找到对应的命令 [${key}]`);
             continue;
         }
 
         // 读取帮助文档
-        let helpDocumentPath = pt.join(__dirname, "example", paramOption.params.example);
+        let helpDocumentPath = pt.join(commandPath, singleOrParams.example);
 
-        let counter = paramOption.params.count < 0 ? "不定长参数" : paramOption.params.count;
-        let defaulter = paramOption.params.count < 0 ? "无" : paramOption.params.defaults.join(", ");
+        console.log(helpDocumentPath);
 
-        Logger.prompt(`${key}: ${paramOption.params.description} [参数命令]`).line();
-        Logger.success(`参数个数：${counter}`);
-        Logger.success(`默认参数：${defaulter}`).line();
+        if (singleOrParams instanceof Params)
+        {
+            let counter = singleOrParams.count < 0 ? "不定长参数" : singleOrParams.count;
+            let defaulter = singleOrParams.count < 0 ? "无" : singleOrParams.defaults.join(", ");
 
-        printHelpDocument(key, helpDocumentPath, Logger);
+            Logger.prompt(`${key}: ${singleOrParams.description} [参数命令]`).line();
+            Logger.success(`参数个数：${counter}`);
+            Logger.success(`默认参数：${defaulter}`).line();
 
-        printing = true;
-    }
-
-    // 布尔参数
-    let __singleMap = Object.values(singleMap);
-    for (let i = 0; i < __singleMap.length; i++)
-    {
-        const single = __singleMap[i];
-
-        if (!single.include) continue;
-
-        // 读取帮助文档
-        let helpDocumentPath = pt.join(__dirname, "example", single.example);
-
-        Logger.prompt(`${single.key}: ${single.description} [布尔命令]`).line();
-        printHelpDocument(single.key, helpDocumentPath, Logger);
-
-        printing = true;
-    }
-
-    if (params.length < 1 && !printing)
-    {
-        printDescription(paramsMappings, singleMap, Logger);
+            printHelpDocument(key, helpDocumentPath, Logger);
+        }
+        else if (singleOrParams instanceof Single)
+        {
+            Logger.prompt(`${key}: ${singleOrParams.description} [布尔命令]`).line();
+            printHelpDocument(key, helpDocumentPath, Logger);
+        }
     }
 
     Logger.close();

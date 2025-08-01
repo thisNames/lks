@@ -19,13 +19,16 @@ const COMMAND_DIR_NAME = "command";
 // module.exports 的文件名称
 const COMMAND_NAME = "command.js";
 
-/** @type {Map<String, Params>} 参数命令映射表 */
+/** @type {Map<String, Params>} mayKey 参数命令映射表 */
 const PARAMS_MAP = new Map();
+
+/** @type {Map<String, Params>} params.key 参数命令映射表 */
+const PARAMS_KEY_MAP = new Map();
 //#endregion
 
 //#region 布尔命令映射表：注册布尔命令（推荐使用参数命令实现 ParamsMapping）
 const SINGLE_MAP = {
-    dvp: new Single("$D", "占位符，表示使用默认参数（前提是有）", "bool_use_defaults.txt"),
+    dvp: new Single("$D", "占位符，表示使用默认参数（前提是有）", "print_help/example/bool_use_defaults.txt"),
     isRecursion: new Single("-R", "启用递归"),
     isSaveLog: new Single("-L", "为本次操作保存日志"),
     isShowCollectFiles: new Single("-SC", "仅显示收集到的文件集合，不创建符号链接")
@@ -84,9 +87,6 @@ function repeatedlyDefinedError(message = "repeatedlyDefinedError", m1 = "unknow
  */
 function fillParamsMapping(models)
 {
-    /** @type {Map<String, Params>} */
-    let paramsKeySet = new Map();
-
     for (let i = 0; i < models.length; i++)
     {
         const model = models[i];
@@ -120,16 +120,14 @@ function fillParamsMapping(models)
             let includeMapKey = PARAMS_MAP.get(paramsMapping.mapKey);
             if (includeMapKey) repeatedlyDefinedError(`Repeatedly defined command [mapKey]: ${paramsMapping.mapKey}`, includeMapKey.__model, paramsMapping.params.__model);
 
-            let includeParamsKey = paramsKeySet.get(paramsMapping.params.key);
+            let includeParamsKey = PARAMS_KEY_MAP.get(paramsMapping.params.key);
             if (includeParamsKey) repeatedlyDefinedError(`Repeatedly defined command [params.key]: ${paramsMapping.params.key}`, includeParamsKey.__model, paramsMapping.params.__model);
 
+            // 注册：两个映射表皆注册了当前命令的对象
             PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params);
-            paramsKeySet.set(paramsMapping.params.key, paramsMapping.params);
+            PARAMS_KEY_MAP.set(paramsMapping.params.key, paramsMapping.params);
         }
     }
-
-    paramsKeySet.clear();
-    paramsKeySet = null;
 }
 
 /**
@@ -151,5 +149,6 @@ main();
 
 module.exports = {
     PARAMS_MAP,
-    SINGLE_MAP
+    SINGLE_MAP,
+    PARAMS_KEY_MAP
 }
