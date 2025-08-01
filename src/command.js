@@ -10,13 +10,14 @@ const path = require("node:path");
 const ParamsMapping = require("./class/ParamsMapping");
 const Params = require("./class/Params");
 const Single = require("./class/Single");
+const Logger = require("./class/Logger");
 
 //#region 初始化常量
 // 模块所在的目录名称
 const COMMAND_DIR_NAME = "command";
 
 // module.exports 的文件名称
-const COMMAND_NAME = "command";
+const COMMAND_NAME = "command.js";
 
 /** @type {Map<String, Params>} 参数命令映射表 */
 const PARAMS_MAP = new Map();
@@ -39,22 +40,40 @@ const SINGLE_MAP = {
 function getModelRequirePath()
 {
     const COMMAND_PATH = path.join(__dirname, COMMAND_DIR_NAME);
-    const command = fs.readdirSync(COMMAND_PATH)
-        .map(f => path.join(COMMAND_PATH, f, COMMAND_NAME + ".js"))
-        .filter(f => fs.existsSync(f) && fs.statSync(f).isFile())
+    const modules = [];
 
-    return command;
+    try
+    {
+        const folders = fs.readdirSync(COMMAND_PATH, { encoding: "utf-8", withFileTypes: true });
+
+        for (let i = 0; i < folders.length; i++)
+        {
+            const f = folders[i];
+
+            if (f.isFile()) continue;
+
+            modules.push(path.join(COMMAND_PATH, f.name, COMMAND_NAME));
+        }
+
+    } catch (error)
+    {
+        Logger.error(`Module load error, ${error.message}. Please check command folder`);
+        return modules;
+    }
+
+    return modules;
 }
 
 /**
- *  抛出异常
+ *  抛出多次定义命令的错误信息
  *  @version 0.0.1
- *  @param {Error} error 抛出异常对象
- *  @throws {Error}
+ *  @param {String} message 错误信息前缀
+ *  @param {String} m1 模块 1 路径
+ *  @param {String} m2 模块 2 路径
  */
-function throwError(error)
+function repeatedlyDefinedError(message = "repeatedlyDefinedError", m1 = "unknown1", m2 = "unknown2")
 {
-    throw error;
+    throw new Error(message + `\r\ndefined 1: ${m1}\r\ndefined 2: ${m2}`);
 }
 
 /**
@@ -65,34 +84,47 @@ function throwError(error)
  */
 function fillParamsMapping(models)
 {
-    let paramsKeySet = new Set();
+    /** @type {Map<String, Params>} */
+    let paramsKeySet = new Map();
 
     for (let i = 0; i < models.length; i++)
     {
         const model = models[i];
-        const m = require(model);
+        let m = null;
 
-        if (!Array.isArray(m)) throwError(`Parameter type error (${model}), must return a [Array<class/ParamsMapping>]`);
+        try
+        {
+            m = require(model);
+        } catch (error)
+        {
+            Logger.warn(`Module load error in [${model}], ${error.message}. Please check module`);
+            continue;
+        }
+
+        if (!Array.isArray(m))
+        {
+            Logger.warn(`Module return type error in [${model}], expected [Array<class/${ParamsMapping.name}>]. Please check module`);
+            continue;
+        }
 
         for (let j = 0; j < m.length; j++)
         {
+            /** @type {ParamsMapping} */
             const paramsMapping = m[j];
 
-            if (paramsMapping instanceof ParamsMapping)
-            {
-                paramsMapping.params.__model = model;
+            if (!paramsMapping instanceof ParamsMapping) continue;
 
-                // 检测重复定义
-                if (PARAMS_MAP.has(paramsMapping.mapKey) || PARAMS_MAP.has(paramsMapping.params.key) || paramsKeySet.has(paramsMapping.params.key) || paramsKeySet.has(paramsMapping.mapKey))
-                    throwError(new TypeError(`The command is defined repeatedly in module [${paramsMapping.params.__model || "unknown module"}]`));
+            paramsMapping.params.__model = model;
 
-                PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params);
-                paramsKeySet.add(paramsMapping.params.key);
+            // 检测重复定义
+            let includeMapKey = PARAMS_MAP.get(paramsMapping.mapKey);
+            if (includeMapKey) repeatedlyDefinedError(`Repeatedly defined command [mapKey]: ${paramsMapping.mapKey}`, includeMapKey.__model, paramsMapping.params.__model);
 
-                continue;
-            }
+            let includeParamsKey = paramsKeySet.get(paramsMapping.params.key);
+            if (includeParamsKey) repeatedlyDefinedError(`Repeatedly defined command [params.key]: ${paramsMapping.params.key}`, includeParamsKey.__model, paramsMapping.params.__model);
 
-            throwError(`Parameter type error (${model}), must return a [class/ParamsMapping]`);
+            PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params);
+            paramsKeySet.set(paramsMapping.params.key, paramsMapping.params);
         }
     }
 
