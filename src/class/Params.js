@@ -2,7 +2,7 @@ const Single = require("./Single");
 
 /**
  *  参数命令参数类
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 class Params extends Single
 {
@@ -30,9 +30,6 @@ class Params extends Single
 
         /** @type {Map<String, Object>} 任务结果数组 */
         this.__taskResults = new Map();
-
-        /** @type {String} 模块所在路径 */
-        this.__model = "";
     }
 
 

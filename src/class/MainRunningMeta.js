@@ -1,10 +1,10 @@
-const ParamsMapping = require("./ParamsMapping");
+const GlobalSingle = require("../config/GlobalSingle");
 const Params = require("./Params");
 const Single = require("./Single");
 
 /**
  *  @description 运行命令时的元数据信息对象，由入口文件定义数据
- *  @version 0.0.3
+ *  @version 0.0.4
  */
 class MainRunningMeta
 {
@@ -28,7 +28,7 @@ class MainRunningMeta
         /** @type {String} 入口文件路径 */
         this.filename = meta.filename;
 
-        /** @type { {[key: string]: Single} } 布尔命令存储对象 */
+        /** @type {GlobalSingle} 布尔命令存储对象 */
         this.singleMap = meta.singleMap;
 
         /** @type {Map<String, Params>} mapKey 参数命令映射表 */

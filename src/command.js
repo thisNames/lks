@@ -9,8 +9,8 @@ const path = require("node:path");
 // class
 const ParamsMapping = require("./class/ParamsMapping");
 const Params = require("./class/Params");
-const Single = require("./class/Single");
 const Logger = require("./class/Logger");
+const GlobalSingle = require("./config/GlobalSingle");
 
 //#region 初始化常量
 // 模块所在的目录名称
@@ -27,17 +27,12 @@ const PARAMS_KEY_MAP = new Map();
 //#endregion
 
 //#region 布尔命令映射表：注册布尔命令（推荐使用参数命令实现 ParamsMapping）
-const SINGLE_MAP = {
-    dvp: new Single("$D", "占位符，表示使用默认参数（前提是有）", "print_help/example/bool_use_defaults.txt"),
-    isRecursion: new Single("-R", "启用递归"),
-    isSaveLog: new Single("-L", "为本次操作保存日志"),
-    isShowCollectFiles: new Single("-SC", "仅显示收集到的文件集合，不创建符号链接")
-};
+const SINGLE_MAP = new GlobalSingle();
 //#endregion
 
 /**
  *  获取模块所在路径
- *  @version 0.0.1
+ *  @version 0.0.2
  *  @returns {String[]} module.exports 文件路径集合
  */
 function getModelRequirePath()
@@ -81,7 +76,7 @@ function repeatedlyDefinedError(message = "repeatedlyDefinedError", m1 = "unknow
 
 /**
  *  获取模块并填充
- *  @version 0.0.2
+ *  @version 0.0.3
  *  @param {String[]} models 模块所在路径集合
  *  @returns {void}
  */
@@ -114,14 +109,14 @@ function fillParamsMapping(models)
 
             if (!paramsMapping instanceof ParamsMapping) continue;
 
-            paramsMapping.params.__model = model;
+            paramsMapping.params.modulePath = model;
 
             // 检测重复定义
             let includeMapKey = PARAMS_MAP.get(paramsMapping.mapKey);
-            if (includeMapKey) repeatedlyDefinedError(`Repeatedly defined command [mapKey]: ${paramsMapping.mapKey}`, includeMapKey.__model, paramsMapping.params.__model);
+            if (includeMapKey) repeatedlyDefinedError(`Repeatedly defined command [mapKey]: ${paramsMapping.mapKey}`, includeMapKey.modulePath, paramsMapping.params.modulePath);
 
             let includeParamsKey = PARAMS_KEY_MAP.get(paramsMapping.params.key);
-            if (includeParamsKey) repeatedlyDefinedError(`Repeatedly defined command [params.key]: ${paramsMapping.params.key}`, includeParamsKey.__model, paramsMapping.params.__model);
+            if (includeParamsKey) repeatedlyDefinedError(`Repeatedly defined command [params.key]: ${paramsMapping.params.key}`, includeParamsKey.modulePath, paramsMapping.params.modulePath);
 
             // 注册：两个映射表皆注册了当前命令的对象
             PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params);

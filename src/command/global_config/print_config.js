@@ -1,4 +1,4 @@
-const GlobalConfig = require("../../class/GlobalConfig");
+const GlobalConfig = require("../../config/GlobalConfig");
 const LoggerSaver = require("../../class/LoggerSaver");
 
 module.exports = function (params, meta)

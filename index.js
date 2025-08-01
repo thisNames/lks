@@ -9,6 +9,7 @@ const MainRunningMeta = require("./src/class/MainRunningMeta");
 
 // src index.js
 const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./src");
+const Single = require("./src/class/Single");
 
 //#region 初始化常量
 const STATIC_META = new MainRunningMeta({
@@ -60,7 +61,7 @@ function fillParams(pm, dvpKey)
 /**
  *  初始化命令
  *  @version 0.0.1
- *  @param {Array<Params>} singles 忽略布尔命令
+ *  @param {Array<Single>} singles 忽略布尔命令
  *  @param {String} ignoreKey 不跳过的 key
  *  @returns {void}
  */
