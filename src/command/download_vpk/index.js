@@ -9,9 +9,12 @@ const Download = require("../../class/net/Download");
 const WorkshopFile = require("../../class/WorkshopFile");
 const Loading = require("../../class/Loading");
 const Tools = require("../../class/Tools");
+const FormatNumber = require("../../class/FormatNumber");
 
 const steamSearch = require("./steam_api");
+const SteamIOSearch = require("./steam_io_api");
 const STYLE = require("./lib/style");
+const OPTION = require("./lib/option");
 
 /**
  *  创建 meta.json 文件
@@ -54,9 +57,10 @@ async function downloading(workshopFile, workerFolder)
     //#region 下载行为
     // 创建一个下载器
     const download = new Download(origin, folder, filename, { "Connection": "keep-alive" });
+    const fn = new FormatNumber();
 
     // 初始化大小
-    const initSize = Tools.formatBytes(workshopFile.file_size);
+    const initSize = fn.formatBytes(workshopFile.file_size);
 
     // 创建一个单进度条
     const singleBarPayload = {
@@ -81,7 +85,7 @@ async function downloading(workshopFile, workerFolder)
     // 【实时进度】
     download.listener(Download.EventTypeProgress, (current, total) =>
     {
-        let size = Tools.formatBytes(current);
+        let size = fn.formatBytes(current);
 
         singleBarPayload.current = size.value + size.type;
         singleBarPayload.complete = current >= total ? STYLE.barStyle.complete : STYLE.barStyle.incomplete;
@@ -90,7 +94,7 @@ async function downloading(workshopFile, workerFolder)
     });
 
     // 开始下载
-    const response = await download.start("", 60000).catch(error => ({ error }));
+    const response = await download.start("", OPTION.option.timeout).catch(error => ({ error }));
 
     // 下载失败
     if (response.error || response.code != 200)
@@ -185,9 +189,20 @@ async function main(params, meta, __this)
     if (ids.length < 1) return;
 
     // 开始搜索
-    const load = new Loading().start("搜索中...🔍");
+    const api = OPTION.option.steamio ? "steamio" : "steam";
+    const load = new Loading().start(`[${api}]🔍...`);
+
     /** @type {Array<WorkshopFile>} 文件集合 */
-    const workshopFiles = await steamSearch(ids).catch(error => ({ error }));
+    let workshopFiles = [];
+
+    if (OPTION.option.steamio)
+    {
+        workshopFiles = await SteamIOSearch(ids).catch(error => ({ error }));
+    }
+    else
+    {
+        workshopFiles = await steamSearch(ids).catch(error => ({ error }));
+    }
 
     if (workshopFiles.error)
     {

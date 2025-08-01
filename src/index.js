@@ -7,7 +7,7 @@ const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./command"); // 命�
 
 // class
 const Logger = require("./class/Logger");
-const Tools = require("./class/Tools");
+const FormatNumber = require("./class/FormatNumber");
 
 //#region 初始化常量
 const START_TIME = Date.now();
@@ -16,7 +16,9 @@ const START_TIME = Date.now();
 // 程序结束
 process.addListener("exit", () =>
 {
-    let time = Tools.formatNumber(Date.now() - START_TIME, 1000, ["ms", "s", "m", "h"]);
+    const fn = new FormatNumber(Date.now() - START_TIME, 1000, ["ms", "s", "m", "h"]);
+    let time = fn.formatNumber(4);
+
     Logger.info(`\r\nrunning time is ${time.value + time.type}`);
 });
 

@@ -1,11 +1,10 @@
 const querystring = require("node:querystring");
-
 const WorkshopFile = require("../../class/WorkshopFile");
-const Tools = require("../../class/Tools");
 
 const requestAPI = require("./lib/request");
+const parseDetails = require("./lib/parse_details");
 const CONFIG = require("./lib/config");
-const TIMEOUT = 60000;
+const OPTION = require("./lib/option");
 
 /**
  *  填充查询集合接口数据
@@ -52,7 +51,7 @@ async function requestCollectionDetails(ids)
     let origin = new URL(CONFIG.steam.base + CONFIG.steam.api.GetCollectionDetails.uri);
     // let origin = new URL(CONFIG.test.base + CONFIG.test.api.GetCollectionDetails.uri);
 
-    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, TIMEOUT).catch(error => ({ error }));
+    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, OPTION.option.timeout).catch(error => ({ error }));
 
     if (response.error || response.message != "json" || response.code != 200) return Promise.reject(`requestCollectionDetails => ${response.error || "Unknown request error"}`); // 404
 
@@ -98,7 +97,7 @@ async function requestCollectionDetails(ids)
 async function requestPublishedFileDetails(ids)
 {
     /** @type {Array<WorkshopFile>} 文件集合 */
-    const workshopFiles = [];
+    let workshopFiles = [];
 
     let origin = new URL(CONFIG.steam.base + CONFIG.steam.api.GetPublishedFileDetails.uri);
     // let origin = new URL(CONFIG.test.base + CONFIG.test.api.GetPublishedFileDetails.uri);
@@ -111,7 +110,7 @@ async function requestPublishedFileDetails(ids)
     let body = fillPublishedFileFormData(idCollection);
 
     // 开始请求
-    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, TIMEOUT).catch(error => ({ error }));
+    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, OPTION.option.timeout).catch(error => ({ error }));
 
     if (response.error || response.message != "json" || response.code != 200) return Promise.reject(`requestPublishedFileDetails => ${response.error || "Unknown request error"}`);
 
@@ -119,34 +118,7 @@ async function requestPublishedFileDetails(ids)
     const details = response.data?.response?.publishedfiledetails;
     if (!Array.isArray(details)) return Promise.reject("requestPublishedFileDetails => Invalid API data");
 
-    for (let i = 0; i < details.length; i++)
-    {
-        const element = details[i];
-
-        if (element.result != 1 || typeof element != "object") continue;
-
-        const workshopFile = WorkshopFile.createWorkshopFileProxy();
-
-        try
-        {
-            workshopFile.index = i;
-            workshopFile.id = element.publishedfileid;
-            workshopFile.title = element.title;
-            workshopFile.filename = element.filename;
-            workshopFile.file_url = element.file_url;
-            workshopFile.file_size = Number.parseInt(element.file_size);
-
-        } catch (error)
-        {
-            continue;
-        }
-
-        // 计算文件大小
-        let size = Tools.formatBytes(workshopFile.file_size);
-        workshopFile.size = size.value + size.type;
-
-        workshopFiles.push(workshopFile);
-    }
+    workshopFiles = parseDetails(details);
 
     return Promise.resolve(workshopFiles);
 }

@@ -5,7 +5,7 @@ const crypto = require("node:crypto");
 
 /**
  *  工具类
- *  @version 0.0.3
+ *  @version 0.0.5
  */
 class Tools
 {
@@ -95,13 +95,14 @@ class Tools
 
     /**
      *  将字节(byte)转换为最合适的单位（KB、MB、GB）
-     *  @version 0.0.2
+     *  @version 0.0.3
      *  @param {number} bytes 字节数
      *  @returns {{value: number, type: "KB" | "MB" | "GB"}}
+     *  @deprecated 请使用 class/new FormatNumber().formatBytes
      */
     static formatBytes(bytes)
     {
-        if (typeof bytes !== "number" || bytes < 0) return { value: 0, type: "B" };
+        if (typeof bytes !== "number" || bytes < 1) return { value: 0, type: "B" };
 
         const KB = 1024;
         const MB = KB * 1024;
@@ -258,17 +259,18 @@ class Tools
 
     /**
      *  将数字转换为指定位数
-     *  @version 0.0.1
+     *  @version 0.0.2
      *  @param {number} num 数
      *  @param {Number} base 被除数
      *  @param {Array<String>} levels 层级
      *  @returns {{value: number, type: String}}
+     *  @deprecated 请使用 class/new FormatNumber().formatNumber
      */
     static formatNumber(num, base, levels)
     {
         let value = 0, type = "";
 
-        if (typeof num != "number" || typeof base != "number" || num < 0 || base < 0) return { value, type };
+        if (typeof num != "number" || typeof base != "number" || num < 1 || base < 1) return { value, type };
 
         for (let i = 0; i < levels.length; i++)
         {

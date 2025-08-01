@@ -12,7 +12,7 @@ module.exports = {
             }
         },
         headers: {
-            "User-Agent": "www.wisps.top",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
             "Host": "api.steampowered.com",
             "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
             "Accept": "*/*",
@@ -27,8 +27,27 @@ module.exports = {
             },
             GetPublishedFileDetails: {
                 uri: "/GetPublishedFileDetails"
+            },
+            steamIOQuery: {
+                uri: "/api/details/file"
             }
         },
         headers: {}
+    },
+    steamio: {
+        base: "https://steamworkshopdownloader.io",
+        api: {
+            steamIOQuery: {
+                uri: "/api/details/file"
+            }
+        },
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+            "origin": "https://steamworkshopdownloader.io",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+            "Accept": "*/*",
+            "Host": "steamworkshopdownloader.io",
+            "Connection": "keep-alive"
+        }
     }
 }
