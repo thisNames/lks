@@ -2,7 +2,7 @@ const Single = require("./Single");
 
 /**
  *  参数命令参数类
- *  @version 0.0.1
+ *  @version 0.0.2
  */
 class Params extends Single
 {
@@ -82,6 +82,15 @@ class Params extends Single
     getTaskResults()
     {
         return this.__taskResults;
+    }
+
+    /**
+     *  获取模块所在的路径
+     *  @returns {String}
+     */
+    getModelPath()
+    {
+        return this.__model;
     }
 }
 

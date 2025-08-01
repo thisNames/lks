@@ -10,7 +10,6 @@ const path = require("node:path");
 const ParamsMapping = require("./class/ParamsMapping");
 const Params = require("./class/Params");
 const Single = require("./class/Single");
-const Tools = require("./class/Tools");
 
 //#region 初始化常量
 // 模块所在的目录名称
@@ -19,10 +18,7 @@ const COMMAND_DIR_NAME = "command";
 // module.exports 的文件名称
 const COMMAND_NAME = "command";
 
-/** @type {Array<ParamsMapping>} 参数命令映射表（参数命令列表）*/
-const PARAMS_MAPPINGS = [];
-
-/** @type {Map<String, Params>} 参数命令数组 */
+/** @type {Map<String, Params>} 参数命令映射表 */
 const PARAMS_MAP = new Map();
 //#endregion
 
@@ -43,26 +39,40 @@ const SINGLE_MAP = {
 function getModelRequirePath()
 {
     const COMMAND_PATH = path.join(__dirname, COMMAND_DIR_NAME);
-    const command = fs.readdirSync(COMMAND_PATH).filter(f => fs.statSync(path.join(COMMAND_PATH, f)).isDirectory());
-    const models = command.map(f => `./${COMMAND_DIR_NAME}/${f}/${COMMAND_NAME}.js`);
+    const command = fs.readdirSync(COMMAND_PATH)
+        .map(f => path.join(COMMAND_PATH, f, COMMAND_NAME + ".js"))
+        .filter(f => fs.existsSync(f) && fs.statSync(f).isFile())
 
-    return models;
+    return command;
 }
 
 /**
- *  获取模块
+ *  抛出异常
  *  @version 0.0.1
+ *  @param {Error} error 抛出异常对象
+ *  @throws {Error}
+ */
+function throwError(error)
+{
+    throw error;
+}
+
+/**
+ *  获取模块并填充
+ *  @version 0.0.2
  *  @param {String[]} models 模块所在路径集合
  *  @returns {void}
  */
 function fillParamsMapping(models)
 {
+    let paramsKeySet = new Set();
+
     for (let i = 0; i < models.length; i++)
     {
         const model = models[i];
         const m = require(model);
 
-        if (!Array.isArray(m)) throw new TypeError(`Parameter type error (${model}), must return a [Array<class/ParamsMapping>]`);
+        if (!Array.isArray(m)) throwError(`Parameter type error (${model}), must return a [Array<class/ParamsMapping>]`);
 
         for (let j = 0; j < m.length; j++)
         {
@@ -71,49 +81,23 @@ function fillParamsMapping(models)
             if (paramsMapping instanceof ParamsMapping)
             {
                 paramsMapping.params.__model = model;
-                PARAMS_MAPPINGS.push(paramsMapping);
+
+                // 检测重复定义
+                if (PARAMS_MAP.has(paramsMapping.mapKey) || PARAMS_MAP.has(paramsMapping.params.key) || paramsKeySet.has(paramsMapping.params.key) || paramsKeySet.has(paramsMapping.mapKey))
+                    throwError(new TypeError(`The command is defined repeatedly in module [${paramsMapping.params.__model || "unknown module"}]`));
+
+                PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params);
+                paramsKeySet.add(paramsMapping.params.key);
+
                 continue;
             }
 
-            throw new TypeError(`Parameter type error (${model}), must return a [class/ParamsMapping]`);
+            throwError(`Parameter type error (${model}), must return a [class/ParamsMapping]`);
         }
     }
-}
 
-/**
- *  检查是否有重复的键
- *  @version 0.0.1
- *  @returns {void}
- */
-function checkParamsMapping()
-{
-    /** @type {Array<ParamsMapping>} 重复的参数命令对象，找到一个就跳出 */
-    const repDefParamsKeys = Tools.findDuplicates(PARAMS_MAPPINGS, p => p.params.key, false);
-
-    /** @type {Array<ParamsMapping>} 重复的参数命令对象，找到一个就跳出 */
-    const repDefMapKeys = Tools.findDuplicates(PARAMS_MAPPINGS, p => p.mapKey, false);
-
-    for (let i = 0; i < repDefMapKeys.length; i++)
-    {
-        const paramsMapping = repDefParamsKeys[i];
-        throw new Error(`The "mapKey" command [${paramsMapping.mapKey}] is defined repeatedly in module ${paramsMapping.params.__model}`);
-    }
-
-    for (let i = 0; i < repDefParamsKeys.length; i++)
-    {
-        const paramsMapping = repDefParamsKeys[i];
-        throw new Error(`The "params.key" command [${paramsMapping.mapKey}] is defined repeatedly in module ${paramsMapping.params.__model}`);
-    }
-}
-
-/**
- *  注册参数命令
- *  @version 0.0.1
- *  @returns {void}
- */
-function registerParamsMapping()
-{
-    PARAMS_MAPPINGS.sort((p1, p2) => p2.params.index - p1.params.index).forEach(paramsMapping => PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params));
+    paramsKeySet.clear();
+    paramsKeySet = null;
 }
 
 /**
@@ -128,12 +112,6 @@ function main()
 
     // 填充模块
     fillParamsMapping(models);
-
-    // 检查重复
-    checkParamsMapping();
-
-    // 注册模块
-    registerParamsMapping();
 }
 
 // 调用主函数
@@ -141,6 +119,5 @@ main();
 
 module.exports = {
     PARAMS_MAP,
-    PARAMS_MAPPINGS,
     SINGLE_MAP
 }

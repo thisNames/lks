@@ -8,15 +8,14 @@ const Params = require("./src/class/Params");
 const MainRunningMeta = require("./src/class/MainRunningMeta");
 
 // src index.js
-const { PARAMS_MAP, PARAMS_MAPPINGS, SINGLE_MAP } = require("./src");
+const { PARAMS_MAP, SINGLE_MAP } = require("./src");
 
 //#region 初始化常量
 const STATIC_META = new MainRunningMeta({
     dirname: __dirname,
     filename: __filename,
     singleMap: SINGLE_MAP,
-    paramsMap: PARAMS_MAP,
-    paramsMappings: PARAMS_MAPPINGS
+    paramsMap: PARAMS_MAP
 });
 //#endregion
 
@@ -94,19 +93,16 @@ function initProcessArgs(singles, ignoreKey)
 function running(paramsMap, dvpKey, meta)
 {
     /** @type {Map<String, Params>} 将 params.key 缓存到 Map 中*/
-    const params = new Map();
+    let paramsCacheMap = new Map();
 
-    for (let [mapKey, pm] of paramsMap.entries())
-    {
-        params.set(pm.key, pm);
-    }
+    for (let pm of paramsMap.values()) paramsCacheMap.set(pm.key, pm);
 
     // 解析参数并运行
     while (process.argv.length > 0)
     {
         let key = process.argv.shift();
         // 通过 mapKey || params.key || * 通配符参数命令 取值筛选
-        let pm = paramsMap.get(key) || params.get(key) || params.get("*");
+        let pm = paramsMap.get(key) || paramsCacheMap.get(key) || paramsCacheMap.get("*");
 
         if (!pm || pm.include) continue;
 
@@ -116,6 +112,9 @@ function running(paramsMap, dvpKey, meta)
         fillParams(pm, dvpKey).running({ ...meta, key });
         console.log(pm); // TODO: debug line comment
     }
+
+    paramsCacheMap.clear();
+    paramsCacheMap = null;
 }
 
 /**
