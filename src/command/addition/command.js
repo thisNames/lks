@@ -29,15 +29,16 @@ const addition = new ParamsMapping("-a", {
 const set_addition = new ParamsMapping("-sa", {
     key: "--set-addition",
     count: 1,
-    defaults: [2],
+    defaults: [3],
     description: "设置累计加法的参数长度（测试命令）",
-    example: "example/params_test_set_add.txt"
+    example: "example/params_test_set_add.txt",
+    before: true
 });
 
 set_addition.addTask("--set-addition", (params, meta) =>
 {
     let _count = Number.parseInt(params[0]);
-    let count = Number.isFinite(_count) ? _count : addition.params.defaults[0];
+    let count = Number.isFinite(_count) ? _count : set_addition.params.defaults[0];
 
     addition.params.count = count;
 

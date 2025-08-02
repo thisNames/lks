@@ -15,7 +15,8 @@ const set_option = new ParamsMapping("-dvapi", {
     count: 1,
     defaults: ["steam"],
     description: "设置下载（免费的）Steam 创意工坊的文件使用的 API [steam/steamio]",
-    example: ""
+    example: "",
+    before: true
 }).addTask("set_option_download_steam_vpk", (params, meta, __this) =>
 {
     if (params[0] == "steam") return OPTION.setSteam();

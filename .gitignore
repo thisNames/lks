@@ -4,3 +4,4 @@
 *.log
 /http
 /src/command/download_vpk/config/*.json
+/dist

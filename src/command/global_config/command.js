@@ -14,7 +14,8 @@ const set_recursion = new ParamsMapping("-sr", {
     count: 1,
     defaults: [GlobalConfig.recursionDeep],
     description: "设置递归最大深度",
-    example: "example/params_set_recursion.txt"
+    example: "example/params_set_recursion.txt",
+    before: true
 }).addTask("--set-recursion", (params, meta) =>
 {
     let value = Tools.typeInt(params[0], GlobalConfig.recursionDeep);
@@ -26,7 +27,8 @@ const set_collect_files = new ParamsMapping("-scf", {
     count: 1,
     defaults: [GlobalConfig.collectFileMaxCount],
     description: "设置文件收集最大数量，小于 1 则不做限制",
-    example: "example/params_set_collect_file_max.txt"
+    example: "example/params_set_collect_file_max.txt",
+    before: true
 }).addTask("--set-files", (params, meta) =>
 {
     let value = Tools.typeInt(params[0], GlobalConfig.collectFileMaxCount);

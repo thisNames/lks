@@ -1,19 +1,21 @@
 const option = {
-    steam: true,
-    steamio: false,
+    toggle: {
+        steam: true,
+        steamio: false,
+    },
     timeout: 60000
 };
 
 function setSteam()
 {
-    Object.keys(option).forEach(k => Reflect.set(option, k, false));
-    option.steam = true;
+    Object.keys(option.toggle).forEach(k => Reflect.set(option, k, false));
+    option.toggle.steam = true;
 }
 
 function setSteamIO()
 {
-    Object.keys(option).forEach(k => Reflect.set(option, k, false));
-    option.steamio = true;
+    Object.keys(option.toggle).forEach(k => Reflect.set(option, k, false));
+    option.toggle.steamio = true;
 }
 
 module.exports = {

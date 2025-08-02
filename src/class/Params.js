@@ -2,7 +2,7 @@ const Single = require("./Single");
 
 /**
  *  参数命令参数类
- *  @version 0.0.4
+ *  @version 0.0.5
  */
 class Params extends Single
 {
@@ -21,12 +21,14 @@ class Params extends Single
             count = 0,
             defaults = [],
             description = "",
-            example = ""
+            example = "",
+            before = false
         } = option || {};
 
         super(key, description, example);
         this.count = count;
         this.defaults = defaults;
+        this.before = before;
 
         /** @type {Array<String>} 参数数组 */
         this.params = [];

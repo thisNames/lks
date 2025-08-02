@@ -189,13 +189,13 @@ async function main(params, meta, __this)
     if (ids.length < 1) return;
 
     // 开始搜索
-    const api = OPTION.option.steamio ? "steamio" : "steam";
+    const api = OPTION.option.toggle.steamio ? "steamio" : "steam";
     const load = new Loading().start(`[${api}]🔍...`);
 
     /** @type {Array<WorkshopFile>} 文件集合 */
     let workshopFiles = [];
 
-    if (OPTION.option.steamio)
+    if (OPTION.option.toggle.steamio)
     {
         workshopFiles = await SteamIOSearch(ids).catch(error => ({ error }));
     }

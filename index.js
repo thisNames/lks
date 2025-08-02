@@ -1,15 +1,16 @@
 /**
- *  @version 0.0.2
+ *  @version 0.0.3
  *  @description 主执行文件（入口）
  */
 
 // class
 const Params = require("./src/class/Params");
 const MainRunningMeta = require("./src/class/MainRunningMeta");
+const Tools = require("./src/class/Tools");
+const Single = require("./src/class/Single");
 
 // src index.js
 const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./src");
-const Single = require("./src/class/Single");
 
 //#region 初始化常量
 const STATIC_META = new MainRunningMeta({
@@ -59,29 +60,82 @@ function fillParams(pm, dvpKey)
 }
 
 /**
+ *  指定区间填充指令参数
+ *  @version 0.0.1
+ *  @param {Params} pm 参数命令对象
+ *  @param {String} dvpKey 默认参数占位符
+ *  @param {Number} index 从第几个开始截取
+ *  @returns {Params} 原来的参数命令对象
+ */
+function fillParamsFSplice(pm, dvpKey, index)
+{
+    if (pm.count < 0)
+    {
+        // 如果值为小于0，那么后面的参数都将作为 params 的参数，defaults 参数将不会生效，直接截取到末尾
+        pm.params.push(...process.argv.splice(index, process.argv.length - index));
+        return pm;
+    }
+
+    // 使用命令参数
+    let pvs = process.argv.splice(index, pm.count);
+    for (let i = 0; i < pm.count; i++)
+    {
+        if (pvs.length < 1) // 1
+        {
+            // 使用默认参数 1 2
+            pm.params.push(pm.defaults[i]);
+            continue;
+        }
+        let pv = pvs[i];
+        pm.params.push(pv == dvpKey ? pm.defaults[i] : pv);
+
+    }
+
+    return pm;
+}
+
+/**
  *  初始化命令
  *  @version 0.0.1
- *  @param {Array<Single>} singles 忽略布尔命令
- *  @param {String} ignoreKey 不跳过的 key
+ *  @param {MainRunningMeta} meta 忽略布尔命令
  *  @returns {void}
  */
-function initProcessArgs(singles, ignoreKey)
+function initProcessArgs(meta)
 {
     // 去掉第一个参数和第二个参数，因为它们分别是 node 和入口文件路径 index.js
     process.argv.splice(0, 2);
 
-    process.argv = process.argv.filter(arg =>
-    {
-        const single = singles.find(single => single.key == arg);
+    /** @type {Map<String, Single>} */
+    const singleMap = Tools.objectFMap(meta.singleMap, (k, v) => v.key, (k, v) => v);
 
+    let i = 0
+    for (; i < process.argv.length; i++)
+    {
+        const key = process.argv[i];
+        const single = singleMap.get(key);
+
+        // 处理布尔参数
         if (single)
         {
             single.include = true;
-            return single.key == ignoreKey;
+            if (process.argv[i] == meta.singleMap.dvp.key) continue;
+
+            // 踢出去匹配到的指令，并且倒退回去，继续下次循环判断是否还有下一个指令
+            process.argv.splice(i, 1);
+            i--;
+            continue;
         }
 
-        return true;
-    });
+        // 处理带 before 的参数命令
+        let pm = meta.paramsMap.get(key) || meta.paramsMap.get(key) || meta.paramsMap.get("*");
+        if (!pm || pm.include || !pm.before) continue;
+
+        fillParamsFSplice(pm, meta.singleMap.dvp, i + 1).running({ ...meta, key });
+
+        // 踢出去匹配到的指令，并且倒退回去，继续下次循环判断是否还有下一个指令
+        process.argv.splice(i, 1);
+        i--;
+    }
 }
 
 /**
@@ -108,7 +162,6 @@ function running(paramsMap, dvpKey, meta, paramKeyMap)
 
         // 填充参数 运行任务
         fillParams(pm, dvpKey).running({ ...meta, key });
-        console.log(pm); // TODO: debug line comment
     }
 }
 
@@ -129,8 +182,8 @@ function end()
  */
 function main()
 {
-    // 初始化参数（去掉无关的参数）
-    initProcessArgs(Object.values(SINGLE_MAP), SINGLE_MAP.dvp.key);
+    // 初始化参数
+    initProcessArgs(STATIC_META);
 
     // 运行任务
     running(PARAMS_MAP, SINGLE_MAP.dvp.key, STATIC_META, PARAMS_KEY_MAP);

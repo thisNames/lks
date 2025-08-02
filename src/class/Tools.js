@@ -9,11 +9,7 @@ const crypto = require("node:crypto");
  */
 class Tools
 {
-    constructor()
-    {
-
-    }
-
+    constructor() { }
 
     /**
      *  生成文字注释
@@ -25,7 +21,6 @@ class Tools
     {
         return args.join("\r\n\t");
     }
-
 
     /**
      *  判断是否是管理员权限运行命令
@@ -288,6 +283,32 @@ class Tools
         value = parseFloat(value.toFixed(2));
 
         return { value, type };
+    }
+
+    /**
+     *  将对象值进行键名映射，并返回新的 map 对象
+     *  @version 0.0.1
+     *  @param {object} obj obj
+     *  @param {function} KeyCall 获取映射对象值的键名的回掉函数, key, value, index, obj
+     *  @param {function} valueCall 获取映射对象值的值内容的回掉函数, key, value, index, obj
+     *  @returns {Map<Object, Object>}
+     */
+    static objectFMap(obj, KeyCall, valueCall)
+    {
+        const map = new Map();
+        let index = 0;
+
+        for (const key in obj)
+        {
+            if (Object.prototype.hasOwnProperty.call(obj, key))
+            {
+                const value = obj[key];
+                index++;
+                map.set(KeyCall(key, value, index, obj), valueCall(key, value, index, obj));
+            }
+        }
+
+        return map;
     }
 }
 
