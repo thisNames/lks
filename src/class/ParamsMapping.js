@@ -2,7 +2,7 @@ const Params = require("./Params");
 
 /**
  *  参数命令映射表配置类
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 class ParamsMapping
 {
@@ -18,7 +18,7 @@ class ParamsMapping
         this.mapKey = mapKey;
 
         /** @type {Params} */
-        this.params = new Params(params.key, params.count, params.defaults, params.description, params.index || 1, params.example || "");
+        this.params = new Params(params);
     }
 
     /**

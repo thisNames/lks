@@ -12,7 +12,7 @@ const Params = require("../../class/Params");
  *  打印描述
  *  @param {MainRunningMeta} meta
  *  @param {LoggerSaver} Logger 日志记录器
- *  @returns {LoggerSaver} 日志记录器
+ *  @returns {void}
  */
 function printDescriptions(meta, Logger)
 {
@@ -37,8 +37,6 @@ function printDescriptions(meta, Logger)
     const package = require("../../../package.json");
     Logger.info("获取更多");
     package.repositorys.forEach(item => Logger.info(`  ${item.url}（${item.type}）`));
-
-    return Logger;
 }
 
 /**
@@ -46,7 +44,7 @@ function printDescriptions(meta, Logger)
  *  @param {String} helpDocumentPath 帮助文档路径
  *  @param {String} key 命令
  *  @param {LoggerSaver} Logger 日志记录器
- *  @returns {LoggerSaver} 日志记录器
+ *  @returns {void}
  */
 function printHelpDocument(key, helpDocumentPath, Logger)
 {
@@ -68,8 +66,6 @@ function printHelpDocument(key, helpDocumentPath, Logger)
     }
 
     Logger.info("====================");
-
-    return Logger;
 }
 
 /**
