@@ -8,13 +8,13 @@ const option = {
 
 function setSteam()
 {
-    Object.keys(option.toggle).forEach(k => Reflect.set(option, k, false));
+    Object.keys(option.toggle).forEach(k => Reflect.set(option.toggle, k, false));
     option.toggle.steam = true;
 }
 
 function setSteamIO()
 {
-    Object.keys(option.toggle).forEach(k => Reflect.set(option, k, false));
+    Object.keys(option.toggle).forEach(k => Reflect.set(option.toggle, k, false));
     option.toggle.steamio = true;
 }
 
