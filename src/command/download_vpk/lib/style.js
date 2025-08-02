@@ -9,6 +9,7 @@ module.exports = {
     },
     barStyle: {
         complete: "完成",
-        incomplete: "下载中"
+        incomplete: "下载中",
+        error: "失败"
     }
 }

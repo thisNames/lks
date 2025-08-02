@@ -1,6 +1,6 @@
 /**
  *  src 入口文件
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 
 const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./command"); // 命令表
@@ -16,8 +16,8 @@ const START_TIME = Date.now();
 // 程序结束
 process.addListener("exit", () =>
 {
-    const fn = new FormatNumber(Date.now() - START_TIME, 1000, ["ms", "s", "m", "h"]);
-    let time = fn.formatNumber(4);
+    const fn = new FormatNumber(0, 1000, ["ms", "s", "m", "h"]);
+    let time = fn.formatNumber(Date.now() - START_TIME, 2);
 
     Logger.info(`\r\nrunning time is ${time.value + time.type}`);
 });

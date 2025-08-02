@@ -45,6 +45,7 @@ async function downloading(workshopFile, workerFolder)
     let folder = pt.join(workerFolder, title);
     // 文件名称
     let filename = workshopFile.id + pt.extname(workshopFile.filename) || ".vpk";
+    let currentBytes = 0;
 
     // 处理路径路径
     let isPathExist = fs.existsSync(folder); // false
@@ -57,7 +58,8 @@ async function downloading(workshopFile, workerFolder)
     //#region 下载行为
     // 创建一个下载器
     const download = new Download(origin, folder, filename, { "Connection": "keep-alive" });
-    const fn = new FormatNumber();
+    const fn = new FormatNumber(0, 1000, ["ms", "s", "min", "hours"]);
+    const startTime = Date.now();
 
     // 初始化大小
     const initSize = fn.formatBytes(workshopFile.file_size);
@@ -65,11 +67,12 @@ async function downloading(workshopFile, workerFolder)
     // 创建一个单进度条
     const singleBarPayload = {
         current: "0B",
-        complete: "进度"
+        complete: "进度",
+        time: 0
     };
     const bar = new SingleBar({
         ...STYLE.singleBarStyle,
-        format: `{complete} {percentage}% {bar} {current}/${initSize.value}${initSize.type}`,
+        format: `{complete} {percentage}% {bar} {current}/${initSize.value}${initSize.type} {time}`,
     });
     // 创建一个加载条
     const loading = new Loading().start("加载中...");
@@ -79,16 +82,19 @@ async function downloading(workshopFile, workerFolder)
     {
         // 渲染进度条
         loading.stop(true, "加载成功");
-        bar.start(workshopFile.file_size, 0);
+        singleBarPayload.complete = STYLE.barStyle.incomplete;
+        bar.start(workshopFile.file_size, 0, singleBarPayload);
     });
 
     // 【实时进度】
     download.listener(Download.EventTypeProgress, (current, total) =>
     {
         let size = fn.formatBytes(current);
+        let time = fn.formatNumber(Date.now() - startTime);
 
         singleBarPayload.current = size.value + size.type;
-        singleBarPayload.complete = current >= total ? STYLE.barStyle.complete : STYLE.barStyle.incomplete;
+        singleBarPayload.time = time.value + time.type;
+        currentBytes = current;
 
         bar.update(current, singleBarPayload);
     });
@@ -99,12 +105,17 @@ async function downloading(workshopFile, workerFolder)
     // 下载失败
     if (response.error || response.code != 200)
     {
+        singleBarPayload.complete = STYLE.barStyle.error;
+        bar.update(currentBytes, singleBarPayload);
         bar.stop();
         loading.stop(false, "加载失败(T_T)");
 
         return Promise.reject(`ERROR: 下载失败 => ${response.error}`);
     }
 
+    /// 下载成功
+    singleBarPayload.complete = STYLE.barStyle.complete;
+    bar.update(workshopFile.file_size, singleBarPayload);
     bar.stop();
     //#endregion
 

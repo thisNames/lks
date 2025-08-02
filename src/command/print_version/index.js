@@ -7,7 +7,7 @@ module.exports = function (param, meta, __this)
 
     const Logger = new LoggerSaver("Version_Task", workerPath, singleMap.isSaveLog.include);
     let package = require("../../../package.json");
-    Logger.info(package.version).close();
+    Logger.info("v" + package.version).close();
 
     return package.version;
 };

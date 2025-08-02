@@ -1,7 +1,7 @@
 /**
  *  转换数字单位，转换为更合适的单位
  *  适合频繁转换数字（例如字节数等）
- *  @version 0.0.1
+ *  @version 0.0.2
  */
 class FormatByte
 {
@@ -58,11 +58,13 @@ class FormatByte
 
     /**
      *  将数字转换为指定位数
+     *  @param {number} num 数字
      *  @param {number} [toFixed=2] 保留几位小数 - 2
      *  @returns {{value: number, type: String}}
      */
-    formatNumber(toFixed = 2)
+    formatNumber(num, toFixed = 2)
     {
+        this.num = num;
         let value = 0, type = "";
 
         if (typeof this.num != "number" || typeof this.base != "number" || this.num < 1 || this.base < 1) return { value, type };
