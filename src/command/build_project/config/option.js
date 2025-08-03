@@ -1,6 +1,9 @@
 const option = {
-    name: "dist",
-    output: "dist"
+    name: "lks",
+    output: "dist",
+    ignoreFiles: ["license", "LICENSE"],
+    ignoreFilesExt: [".md", ".ts"],
+    ignoresReg: []
 };
 
 module.exports = option;
