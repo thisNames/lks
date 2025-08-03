@@ -1,11 +1,11 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 
-const build_project = new ParamsMapping("-bpt", {
-    key: "--build-project",
-    description: "打包当前项目（开发命令）",
+const collect_required = new ParamsMapping("-crd", {
+    key: "--collect-required",
+    description: "收集当前项目依赖（开发命令）",
     count: 0,
     defaults: [],
     example: ""
-}).addTask("build_project", (params, meta, __this) => require("./index")(params, meta, __this));
+}).addTask("collect_required", (params, meta, __this) => require("./index")(params, meta, __this));
 
-module.exports = [build_project];
+module.exports = [collect_required];

@@ -50,9 +50,9 @@ class WorkshopFile
                 }
 
                 // 无效的 Number
-                if (typeof value === "number" && (!Number.isFinite(value) || isNaN(value)))
+                if (typeof value === "number" && !Number.isFinite(value))
                 {
-                    throw new Error(`[${key}] 是 NaN 或 Infinity`);
+                    throw new Error(`[${key}] 是无效的数值`);
                 }
 
                 // 检查字符串类型，防止注入攻击或空字符串
