@@ -240,5 +240,13 @@ function main()
     end();
 }
 
-// 运行主入口
-main();
+// 捕获同步异常
+try
+{
+    // 运行主入口
+    main();
+} catch (error)
+{
+    console.error(error);
+    process.exit(0);
+}
