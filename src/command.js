@@ -26,7 +26,7 @@ const PARAMS_MAP = new Map();
 const PARAMS_KEY_MAP = new Map();
 //#endregion
 
-//#region 布尔命令映射表：注册布尔命令（推荐使用参数命令实现 ParamsMapping）
+//#region 布尔命令
 const SINGLE_MAP = new GlobalSingle();
 //#endregion
 

@@ -150,7 +150,7 @@ function initBeforeParams(meta, processArgv)
         const key = processArgv[i];
 
         // 处理带 before 的参数命令
-        let pm = meta.paramsMap.get(key) || meta.paramsMap.get(key) || meta.paramsMap.get("*");
+        let pm = meta.paramsMap.get(key) || meta.paramsKeyMap.get(key) || meta.paramsKeyMap.get("*");
         if (!pm || pm.include || !pm.before) continue;
 
         pm.include = true;
@@ -222,7 +222,7 @@ function end()
 function main()
 {
     // 拷贝一份静态指令数据，避免破坏数据
-    let processArgv = process.argv.map(k => k);
+    const processArgv = process.argv.map(k => k);
 
     // 初始化参数
     initProcessArgs(STATIC_META, processArgv);
@@ -240,13 +240,4 @@ function main()
     end();
 }
 
-// 捕获同步异常
-try
-{
-    // 运行主入口
-    main();
-} catch (error)
-{
-    console.error(error);
-    process.exit(0);
-}
+main();
