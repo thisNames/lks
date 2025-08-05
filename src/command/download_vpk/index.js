@@ -18,13 +18,18 @@ const OPTION = require("./lib/option");
 
 /**
  *  创建 meta.json 文件
- *  @param {String} folder 目录
  *  @param {WorkshopFile} workshopFile workshopFile
  *  @returns {void}
  */
-function createMetaFile(folder, workshopFile)
+function createMetaFile(workshopFile)
 {
-    fs.writeFile(pt.join(folder, "meta.json"), JSON.stringify(workshopFile), { encoding: "utf-8", flag: "w" }, err => err);
+    try
+    {
+        fs.writeFile(pt.join(workshopFile.folder + "", "meta.json"), JSON.stringify(workshopFile), { encoding: "utf-8", flag: "w" }, error => error);
+    } catch (error)
+    {
+
+    }
 }
 
 /**
@@ -35,68 +40,75 @@ function createMetaFile(folder, workshopFile)
  *  @throws 路径被占用错误
  *  @throws 文件地址错误
  *  @throws 下载失败
- *  @throws  写入 meta.json 失败
  */
 async function downloading(workshopFile, workerFolder)
 {
     // 规范化目录名称
-    let title = Tools.sanitizeFolderName(workshopFile.title, workshopFile.id);
+    let title = workshopFile.title;
     // 新建的目录
     let folder = pt.join(workerFolder, title);
     // 文件名称
     let filename = workshopFile.id + pt.extname(workshopFile.filename) || ".vpk";
-    let currentBytes = 0;
 
     // 处理路径路径
     let isPathExist = fs.existsSync(folder); // false
     if (isPathExist && fs.statSync(folder).isFile()) return Promise.reject(`ERROR: 此路径已存在，无法覆盖 => ${folder}`);
     !isPathExist && fs.mkdirSync(folder);
 
+    // 验证资源路径
     let origin = Tools.validURL(workshopFile.file_url);
-    if (!origin) return Promise.reject(`ERROR: 文件不存在 => ${title}`);
+    if (!origin) return Promise.reject(`ERROR: 资源链接不存在 => ${title}`);
 
     //#region 下载行为
+    // 当前进度字节
+    let currentBytes = 0;
     // 创建一个下载器
     const download = new Download(origin, folder, filename, { "Connection": "keep-alive" });
+    // 创建一个 FormatNumber，格式化输出数值
     const fn = new FormatNumber(0, 1000, ["ms", "s", "min", "hours"]);
+    // 开始时间
     const startTime = Date.now();
-
     // 初始化大小
     const initSize = fn.formatBytes(workshopFile.file_size);
-
-    // 创建一个单进度条
+    // 单进度条数据对象
     const singleBarPayload = {
         current: "0B",
         complete: "进度",
-        time: 0
+        time: 0,
+        speed: 0
     };
+    // 创建一个单进度条对象
     const bar = new SingleBar({
         ...STYLE.singleBarStyle,
-        format: `{complete} {percentage}% {bar} {current}/${initSize.value}${initSize.type} {time}`,
+        format: `{complete} {percentage}% {bar} {current}/${initSize.value}${initSize.type} {time} {speed}/s`,
     });
     // 创建一个加载条
     const loading = new Loading().start("加载中...");
 
-    // 监听下载事件【加载成功】
+    // 监听下载事件
+    // 【加载成功】
     download.listener(Download.EventTypeStartDownload, () =>
     {
-        // 渲染进度条
-        loading.stop(true, "加载成功");
+        // 渲染进度条 => 下载中
         singleBarPayload.complete = STYLE.barStyle.incomplete;
+
+        loading.stop(true, "加载成功");
         bar.start(workshopFile.file_size, 0, singleBarPayload);
     });
-
     // 【实时进度】
-    download.listener(Download.EventTypeProgress, (current, total) =>
+    download.listener(Download.EventTypeProgress, (bCurrent, bTotal, bSpeed) =>
     {
-        let size = fn.formatBytes(current);
+        let size = fn.formatBytes(bCurrent);
         let time = fn.formatNumber(Date.now() - startTime);
+        let speed = fn.formatBytes(bSpeed);
 
         singleBarPayload.current = size.value + size.type;
         singleBarPayload.time = time.value + time.type;
-        currentBytes = current;
+        singleBarPayload.speed = speed.value + speed.type;
 
-        bar.update(current, singleBarPayload);
+        currentBytes = bCurrent;
+
+        bar.update(currentBytes, singleBarPayload);
     });
 
     // 开始下载
@@ -106,6 +118,7 @@ async function downloading(workshopFile, workerFolder)
     if (response.error || response.code != 200)
     {
         singleBarPayload.complete = STYLE.barStyle.error;
+
         bar.update(currentBytes, singleBarPayload);
         bar.stop();
         loading.stop(false, "加载失败(T_T)");
@@ -115,11 +128,17 @@ async function downloading(workshopFile, workerFolder)
 
     /// 下载成功
     singleBarPayload.complete = STYLE.barStyle.complete;
+    singleBarPayload.speed = 0;
+
     bar.update(workshopFile.file_size, singleBarPayload);
     bar.stop();
     //#endregion
 
-    createMetaFile(folder, workshopFile);
+    // 添加备注信息
+    let time = fn.formatNumber(Date.now() - startTime);
+
+    workshopFile.remark = `Time: ${time.value + time.type}`;
+    workshopFile.folder = folder;
 
     return Promise.resolve(`下载成功，保存至 => ${response.data.savePath}`);
 }
@@ -237,7 +256,15 @@ async function main(params, meta, __this)
         const workshopFile = workshopFiles[i];
 
         printWorkshopFileDetails([workshopFile], Logger);
-        await downloading(workshopFile, workerFolder).then(s => Logger.line().success(s)).catch(r => Logger.line().error(r));
+        await downloading(workshopFile, workerFolder).then(s =>
+        {
+            Logger.line().success(s);
+            createMetaFile(workshopFile);
+        }
+        ).catch(r =>
+        {
+            Logger.line().error(r);
+        });
     }
 
     Logger.close();

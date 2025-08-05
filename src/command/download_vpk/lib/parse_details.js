@@ -22,7 +22,7 @@ function parseDetails(details)
         {
             workshopFile.index = i;
             workshopFile.id = element.publishedfileid;
-            workshopFile.title = element.title;
+            workshopFile.title = Tools.sanitizeFolderName(element.title, workshopFile.id);
             workshopFile.filename = element.filename;
             workshopFile.file_url = element.file_url;
             workshopFile.file_size = Number.parseInt(element.file_size);

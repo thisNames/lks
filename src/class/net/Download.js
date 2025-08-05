@@ -8,20 +8,21 @@ const ResponseData = require("./ResponseData");
 
 /**
  *  公共资源下载器，支持的协议：https, http
- *  @version 0.0.1
+ *  @version 0.0.2
  */
 class Download extends HttpRequest
 {
     /** 
      * 下载实时进度事件
      * @type {String}
-     * @event progress (当前的字节数，总的字节数)
+     * @event progress (当前的字节数，总的字节数，当前速度字节/秒)
      */
     static EventTypeProgress = "progress";
 
     /** 
      * 开始下载事件
      * @type {String}
+     * @event start 无
      */
     static EventTypeStartDownload = "start";
 
@@ -37,6 +38,9 @@ class Download extends HttpRequest
 
         this.folder = folder;
         this.filename = filename;
+
+        // 网速更新的速度，默认 1000ms
+        this.__netUpdateSpeed = 1000;
     }
 
     /**
@@ -54,6 +58,11 @@ class Download extends HttpRequest
         let __contentLength = Number.parseInt(response.headers["content-length"]);
         let contentLength = Number.isNaN(__contentLength) ? 0 : __contentLength;
         let currentLength = 0;
+
+        // 下载速度计算
+        let lastTime = Date.now();
+        let lastBytes = 0;
+        let speedBytes = 0;
 
         // 创建写入流对象
         let filePath = pt.join(this.folder, this.filename);
@@ -75,7 +84,22 @@ class Download extends HttpRequest
 
             // 实时进度
             currentLength += Buffer.byteLength(chunk, "binary");
-            this.__emit(Download.EventTypeProgress, currentLength, contentLength);
+
+            // 实时速度
+            let now = Date.now();
+            let elapsedTime = now - lastTime;
+            let elapsedTBytes = currentLength - lastBytes;
+
+            if (elapsedTime > this.__netUpdateSpeed)
+            {
+                speedBytes = elapsedTBytes / elapsedTime * this.__netUpdateSpeed;
+                lastTime = now;
+                lastBytes = currentLength;
+            }
+
+
+            this.__emit(Download.EventTypeProgress, currentLength, contentLength, speedBytes);
+
         });
         response.on("end", () =>
         {

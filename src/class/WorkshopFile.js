@@ -1,6 +1,6 @@
 /**
  *  创意工坊文件示例
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 class WorkshopFile
 {
@@ -26,6 +26,12 @@ class WorkshopFile
 
         /** @type {String} 索引 */
         this.index = 0;
+
+        /** @type {String} 备注 */
+        this.remark = "";
+
+        /** @type {String} 保存的目录 */
+        this.folder = "";
     }
 
 
