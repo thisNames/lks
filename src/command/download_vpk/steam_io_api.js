@@ -28,29 +28,82 @@ function fillCollectionFormData(ids)
 /**
  *  使用 Steam IO API 搜索集合内容
  *  @param {Array<String>} ids id 数组
- *  @returns {Promise<Array<String>>} 文件 id 数组
+ *  @returns {Promise<Array<String | WorkshopFile>>} 文件 id 数组
  *  @throws 请求失败
  *  @throws API 数据解析失败
  */
 async function requestCollectionDetails(ids)
 {
+    /** @type {Array<String>} idsCollection id 集合 */
+    let idsCollection = [];
+    let body = fillCollectionFormData(ids);
 
+    let origin = new URL(CONFIG.steamio.base + CONFIG.steamio.api.steamIOQuery.uri);
+    // let origin = new URL(CONFIG.test.base + CONFIG.test.api.steamIOQuery.uri);
+
+    // 开始请求
+    const response = await requestAPI(origin, "POST", CONFIG.steamio.headers, body, OPTION.option.timeout).catch(error => ({ error }));
+
+    if (response.error || response.message != "json" || response.code != 200) return Promise.reject(`requestCollectionDetails => ${response.error || "Unknown request error"}`);
+
+    // 尝试读取数据
+    const details = response.data;
+
+    if (!Array.isArray(details)) return Promise.reject("requestCollectionDetails => Invalid API data");
+
+    // 获取 id
+    for (let i = 0; i < details.length; i++)
+    {
+        const detail = details[i];
+        if (typeof detail != "object" || detail.result != 1) continue;
+
+        const children = detail.children;
+
+        if (Array.isArray(children))
+        {
+            for (let j = 0; j < children.length; j++)
+            {
+                const item = children[j];
+                if (typeof item != "object" || item.file_type != 0) continue;
+                item.publishedfileid && idsCollection.push(item.publishedfileid);
+            }
+            continue;
+        }
+
+        const workshopFiles = parseDetails([detail]);
+        workshopFiles.length > 0 && idsCollection.push(...workshopFiles);
+    }
+
+    return Promise.resolve(idsCollection);
 }
 
 /**
  *  使用 Steam IO API 搜索文件内容
- *  @param {String} body 请全体
+ *  @param {Array<String>} ids id 集合
  *  @returns {Promise<Array<WorkshopFile>>} WorkshopFile 文件对象
+ *  @throws 集合请求失败
+ *  @throws 空集合
  *  @throws 请求失败
  *  @throws API 数据解析失败
  */
-async function requestPublishedFileDetails(body)
+async function requestPublishedFileDetails(ids)
 {
     /** @type {Array<WorkshopFile>} 文件集合 */
     let workshopFiles = [];
+    let idsString = [];
+
+    // 获取 id 集合
+    const idsCollection = await requestCollectionDetails(ids).catch(error => ({ error }));
+    if (idsCollection.error) return Promise.reject(`requestPublishedFileDetails => ${idsCollection.error}`);
+    if (idsCollection.length < 1) return Promise.reject("requestPublishedFileDetails => Empty");
+
+    idsCollection.forEach(item => item instanceof WorkshopFile ? workshopFiles.push(item) : idsString.push(item));
+    if (idsString.length < 1) return Promise.resolve(workshopFiles);
 
     let origin = new URL(CONFIG.steamio.base + CONFIG.steamio.api.steamIOQuery.uri);
     // let origin = new URL(CONFIG.test.base + CONFIG.test.api.steamIOQuery.uri);
+
+    let body = fillCollectionFormData([...new Set(idsString)]);
 
     // 开始请求
     const response = await requestAPI(origin, "POST", CONFIG.steamio.headers, body, OPTION.option.timeout).catch(error => ({ error }));
@@ -62,7 +115,9 @@ async function requestPublishedFileDetails(body)
 
     if (!Array.isArray(details)) return Promise.reject("requestPublishedFileDetails => Invalid API data");
 
-    workshopFiles = parseDetails(details);
+    let results = parseDetails(details);
+
+    results.length > 0 && workshopFiles.push(...results);
 
     return Promise.resolve(workshopFiles);
 }
@@ -76,8 +131,7 @@ async function requestPublishedFileDetails(body)
  */
 async function search(ids)
 {
-    const body = fillCollectionFormData(ids);
-    const workshopFiles = await requestPublishedFileDetails(body).catch(error => ({ error }));
+    const workshopFiles = await requestPublishedFileDetails(ids).catch(error => ({ error }));
 
     if (workshopFiles.error) return Promise.reject(`search => ${workshopFiles.error}`);
     if (!Array.isArray(workshopFiles) || workshopFiles.length < 1) return Promise.reject("search => Empty");

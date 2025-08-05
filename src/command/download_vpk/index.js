@@ -219,8 +219,8 @@ async function main(params, meta, __this)
     if (ids.length < 1) return;
 
     // 开始搜索
-    const api = OPTION.option.toggle.steamio ? "steamio" : "steam";
-    const load = new Loading().start(`[${api}]🔍...`);
+    const apiName = OPTION.option.toggle.steamio ? "[SteamIO]" : "[Steam]";
+    const load = new Loading().start(`${apiName}🔍...`);
 
     /** @type {Array<WorkshopFile>} 文件集合 */
     let workshopFiles = [];

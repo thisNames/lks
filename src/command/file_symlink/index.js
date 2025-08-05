@@ -6,10 +6,12 @@ const pt = require("node:path");
 
 // class
 const LoggerSaver = require("../../class/LoggerSaver");
-const GlobalConfig = require("../../class/GlobalConfig");
+const GlobalConfig = require("../../config/GlobalConfig");
 const Tools = require("../../class/Tools");
 const MainRunningMeta = require("../../class/MainRunningMeta");
 const Params = require("../../class/Params");
+
+const OPTION = require("./lib/option");
 
 /**
  *  收集文件
@@ -137,7 +139,6 @@ async function main(params, meta, __this)
     let { key: sourceFolder, singleMap, cwd } = meta;
 
     let isRecursion = singleMap.isRecursion.include;
-    let isShowCollectFiles = singleMap.isShowCollectFiles.include;
     let isSaveLog = singleMap.isSaveLog.include;
     let recursionDeep = GlobalConfig.recursionDeep;
     let collectFileMaxCount = GlobalConfig.collectFileMaxCount;
@@ -157,7 +158,7 @@ async function main(params, meta, __this)
     const files = collectFiles(sourceFolder, extName, isRecursion, recursionDeep, collectFileMaxCount);
 
     // 打印收集，不创建符号链接
-    if (isShowCollectFiles) return printCollectFiles(files, Logger);
+    if (OPTION.isDisplayOnly) return printCollectFiles(files, Logger);
 
     // 开始创建符号链接
     let result = await createSymlink(files, workerFolder, item => item.ok ? Logger.info(item.message) : Logger.error(item.message));

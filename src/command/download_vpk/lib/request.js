@@ -7,6 +7,7 @@ const HttpRequest = require("../../../class/net/HttpRequest");
  *  @param {String} method 请求方式
  *  @param {Object} headers 请求头
  *  @param {String} body 请求体
+ *  @param {Number} timeout 超时时间
  *  @returns {Promise<ResponseData>} 成功返回响应对象 | 错误信息
  *  @throws 直接请求失败
  *  @throws 获取响应对象数据时失败
