@@ -12,9 +12,6 @@ class GlobalSingle
 
         /** @type {Single} 为本次操作保存日志 */
         this.isSaveLog = new Single("-L", "为本次操作保存日志", "", __filename);
-
-        /** @type {Single} 仅显示收集到的文件集合，不创建符号链接 */
-        this.isShowCollectFiles = new Single("-SC", "仅显示收集到的文件集合，不创建符号链接", "", __filename);
     }
 }
 
