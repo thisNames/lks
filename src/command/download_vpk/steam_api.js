@@ -107,7 +107,7 @@ async function requestPublishedFileDetails(ids)
     if (idCollection.error) return Promise.reject(`requestPublishedFileDetails => ${idCollection.error}`);
     if (idCollection.length < 1) return Promise.reject("requestPublishedFileDetails => Empty");
 
-    let body = fillPublishedFileFormData(idCollection);
+    let body = fillPublishedFileFormData([...new Set(idCollection)]);
 
     // 开始请求
     const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, OPTION.option.timeout).catch(error => ({ error }));

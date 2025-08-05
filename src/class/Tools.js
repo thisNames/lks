@@ -5,7 +5,7 @@ const crypto = require("node:crypto");
 
 /**
  *  工具类
- *  @version 0.0.5
+ *  @version 0.0.6
  */
 class Tools
 {
@@ -309,6 +309,24 @@ class Tools
         }
 
         return map;
+    }
+
+
+    /**
+     *  比较两个字符串是否相等
+     *  @version 0.0.1
+     *  @param {String} sa 比较的字符串 A
+     *  @param {String} sb 比较的字符串 B
+     *  @param {Boolean} [ignoreCase=false] 是否区分大小写
+     */
+    static equalString(sa, sb, ignoreCase = false)
+    {
+        let _sa = sa + "";
+        let _sb = sb + "";
+
+        if (ignoreCase) return _sa.toLowerCase().trim() == _sb.toLowerCase().trim();
+
+        return _sa.trim() == _sb.trim();
     }
 }
 
