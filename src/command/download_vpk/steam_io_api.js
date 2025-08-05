@@ -26,6 +26,18 @@ function fillCollectionFormData(ids)
 }
 
 /**
+ *  使用 Steam IO API 搜索集合内容
+ *  @param {Array<String>} ids id 数组
+ *  @returns {Promise<Array<String>>} 文件 id 数组
+ *  @throws 请求失败
+ *  @throws API 数据解析失败
+ */
+async function requestCollectionDetails(ids)
+{
+
+}
+
+/**
  *  使用 Steam IO API 搜索文件内容
  *  @param {String} body 请全体
  *  @returns {Promise<Array<WorkshopFile>>} WorkshopFile 文件对象
