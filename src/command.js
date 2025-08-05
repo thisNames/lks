@@ -1,86 +1,149 @@
 /**
- *  命令配置选项
- *  所有命令配置统一代码
+ *  自动注册参数命令模块
+ *  @version 0.0.1
  */
 
+const fs = require("node:fs");
+const path = require("node:path");
+
+// class
+const ParamsMapping = require("./class/ParamsMapping");
 const Params = require("./class/Params");
-const Single = require("./class/Single");
-const { comment } = require("./class/Tools");
-const GC = require("./class/GlobalConfig");
+const Logger = require("./class/Logger");
+const GlobalSingle = require("./config/GlobalSingle");
+
+//#region 初始化常量
+// 模块所在的目录名称
+const COMMAND_DIR_NAME = "command";
+
+// module.exports 的文件名称
+const COMMAND_NAME = "command.js";
+
+/** @type {Map<String, Params>} mayKey 参数命令映射表 */
+const PARAMS_MAP = new Map();
+
+/** @type {Map<String, Params>} params.key 参数命令映射表 */
+const PARAMS_KEY_MAP = new Map();
+//#endregion
+
+//#region 布尔命令
+const SINGLE_MAP = new GlobalSingle();
+//#endregion
 
 /**
- *  @type {Map<String, Params>} 参数命令数组
+ *  获取模块所在路径
+ *  @version 0.0.2
+ *  @returns {String[]} module.exports 文件路径集合
  */
-const paramsMap = new Map();
-
-//#region 设置参数命令映射表（优先匹配 mapKey；通配符命令 * 放在末尾）
-const paramsMapping = {
-    version: {
-        mapKey: "-v",
-        params: new Params("--version", 0, [], "显示当前版本")
-    },
-    help: {
-        mapKey: "-h",
-        params: new Params("--help", 0, [], "命令帮助")
-    },
-    "print:global:config": {
-        mapKey: "-pc",
-        params: new Params("--config", 0, [], "显示全局配置")
-    },
-    "set:recursionDeep": {
-        mapKey: "-sr",
-        params: new Params("--set:recursion", 1, [GC.recursionDeep], "设置递归最大深度")
-    },
-    "set:collectFileMaxCount": {
-        mapKey: "-scf",
-        params: new Params("--set:files", 1, [GC.collectFileMaxCount], "设置文件收集最大数量， 小于1则不做限制")
-    },
-    add: {
-        mapKey: "-a",
-        params: new Params("--add", 2, [0, 0], comment("相加（测试命令）", "FE: -a 10 20"))
-    },
-    "set:add": {
-        mapKey: "-sa",
-        params: new Params("--set:add", 1, [3], comment("设置相加参数个数（测试命令）值为 -1，则截取到末尾，默认参数在不生效", "FE: -sa 3"))
-    },
-    "file:symlink": {
-        mapKey: null,
-        params: new Params("*", 1, [".vpk"], comment("批量为文件创建符号链接，* 为文件所在的路径", "FE: C:/AAA/BBB/CCC <后缀名称>"))
-    }
-};
-//#endregion
-
-//#region 注册参数命令
-for (let key in paramsMapping)
+function getModelRequirePath()
 {
-    // mapKey
-    if (paramsMap.has(paramsMapping[key].mapKey))
+    const COMMAND_PATH = path.join(__dirname, COMMAND_DIR_NAME);
+    const modules = [];
+
+    try
     {
-        let rs = `The key [${key}.mapKey] [${paramsMapping[key].mapKey}] command has defined`;
-        throw new Error(rs);
-    }
-    // params.key
-    if ([...paramsMap.values()].find(p => p.key == paramsMapping[key].params.key))
+        const folders = fs.readdirSync(COMMAND_PATH, { encoding: "utf-8", withFileTypes: true });
+
+        for (let i = 0; i < folders.length; i++)
+        {
+            const f = folders[i];
+
+            if (f.isFile()) continue;
+
+            modules.push(path.join(COMMAND_PATH, f.name, COMMAND_NAME));
+        }
+
+    } catch (error)
     {
-        let rs = `The [${key}.params.key] [${paramsMapping[key].params.key}] command has defined`;
-        throw new Error(rs);
+        Logger.error(`Module load error, ${error.message}. Please check command folder`);
+        return modules;
     }
 
-    paramsMap.set(paramsMapping[key].mapKey, paramsMapping[key].params);
+    return modules;
 }
-//#endregion
 
-//#region 注册布尔命令
-const singleMap = {
-    isUseDefaultValue: new Single("$D", comment("占位符，表示使用默认参数（前提是有）", "FE: -a $D 90")),
-    isRecursion: new Single("-R", comment("使用递归", "FE: C:/AA/BB/CC .vpk -R")),
-    isSaveLog: new Single("-L", comment("为本次操作保存日志", "FE: C:/AA/BB/CC .vpk -R -L")),
-    isShowCollectFiles: new Single("-SC", comment("仅显示收集到的文件集合，不创建符号链接", "FE: C:/AA/BB/CC .vpk -R -L -SC"))
-};
-//#endregion
+/**
+ *  抛出多次定义命令的错误信息
+ *  @version 0.0.1
+ *  @param {String} message 错误信息前缀
+ *  @param {String} m1 模块 1 路径
+ *  @param {String} m2 模块 2 路径
+ */
+function repeatedlyDefinedError(message = "repeatedlyDefinedError", m1 = "unknown1", m2 = "unknown2")
+{
+    throw new Error(message + `\r\ndefined 1: ${m1}\r\ndefined 2: ${m2}`);
+}
+
+/**
+ *  获取模块并填充
+ *  @version 0.0.3
+ *  @param {String[]} models 模块所在路径集合
+ *  @returns {void}
+ */
+function fillParamsMapping(models)
+{
+    for (let i = 0; i < models.length; i++)
+    {
+        const model = models[i];
+        let m = null;
+
+        try
+        {
+            m = require(model);
+        } catch (error)
+        {
+            Logger.warn(`Module load error in [${model}], ${error.message}. Please check module`);
+            continue;
+        }
+
+        if (!Array.isArray(m))
+        {
+            Logger.warn(`Module return type error in [${model}], expected [Array<class/${ParamsMapping.name}>]. Please check module`);
+            continue;
+        }
+
+        for (let j = 0; j < m.length; j++)
+        {
+            /** @type {ParamsMapping} */
+            const paramsMapping = m[j];
+
+            if (!paramsMapping instanceof ParamsMapping) continue;
+
+            paramsMapping.params.modulePath = model;
+
+            // 检测重复定义
+            let includeMapKey = PARAMS_MAP.get(paramsMapping.mapKey);
+            if (includeMapKey) repeatedlyDefinedError(`Repeatedly defined command [mapKey]: ${paramsMapping.mapKey}`, includeMapKey.modulePath, paramsMapping.params.modulePath);
+
+            let includeParamsKey = PARAMS_KEY_MAP.get(paramsMapping.params.key);
+            if (includeParamsKey) repeatedlyDefinedError(`Repeatedly defined command [params.key]: ${paramsMapping.params.key}`, includeParamsKey.modulePath, paramsMapping.params.modulePath);
+
+            // 注册：两个映射表皆注册了当前命令的对象
+            PARAMS_MAP.set(paramsMapping.mapKey, paramsMapping.params);
+            PARAMS_KEY_MAP.set(paramsMapping.params.key, paramsMapping.params);
+        }
+    }
+}
+
+/**
+ *  主函数，注册参数命令模块
+ *  @version 0.0.1
+ *  @returns {void}
+ */
+function main()
+{
+    // 获取模块
+    const models = getModelRequirePath();
+
+    // 填充模块
+    fillParamsMapping(models);
+}
+
+// 调用主函数
+main();
 
 module.exports = {
-    paramsMap,
-    paramsMapping,
-    singleMap
+    PARAMS_MAP,
+    SINGLE_MAP,
+    PARAMS_KEY_MAP
 }

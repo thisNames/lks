@@ -1,9 +1,11 @@
 const fs = require("node:fs");
 const pt = require("node:path");
 
-const { getDate, getRealTime } = require("./Tools");
+const Tools = require("./Tools");
+
 /**
  *  日志收集类
+ *  @version 0.0.2
  */
 class MessageCollect
 {
@@ -11,29 +13,33 @@ class MessageCollect
      * @param {String} path 日志保存路径
      * @param {String} name 日志名称，默认 log
      */
-    constructor(name, path)
+    constructor(name, path = "log")
     {
         this.fr = null;
         this.name = name;
         this.path = path;
+
+        this.__errorCount = 3;
 
         this.init();
     }
 
     /**
      *  初始化日志
+     *  @param {String} filePath 日志保存路径和名称，可选
      *  @returns {MessageCollect} this
      */
-    init()
+    init(filePath = "")
     {
         if (!fs.existsSync(this.path))
         {
             this.path = fs.mkdirSync(this.path, { recursive: true });
         }
 
-        this.filename = this.name.concat("_", getDate(), "_", Date.now(), ".log");
-        this.filePath = pt.resolve(this.path, this.filename);
-        this.fr = fs.openSync(this.filePath, "w");
+        this.filename = this.name.concat("_", Tools.getDate(), "_", Date.now(), ".log");
+        this.filePath = filePath || pt.resolve(this.path, this.filename);
+
+        this.fr = fs.openSync(this.filePath, "a+");
 
         return this;
     }
@@ -48,6 +54,7 @@ class MessageCollect
         if (this.fr === null) return this;
 
         fs.closeSync(this.fr);
+
         this.fr = null;
 
         return this;
@@ -61,14 +68,20 @@ class MessageCollect
      */
     collect(you, message)
     {
-        const m = `[${getRealTime()}] ${you}: ${message}\r\n`;
+        if (this.__errorCount < 0) return this.close();
+
+        const m = `[${Tools.getRealTime()}] ${you}: ${message}\r\n`;
 
         try
         {
-            fs.writeSync(this.fr, m, null, "utf-8");
+            fs.writeSync(this.fr, m, null, "utf8");
         } catch (error)
         {
+            this.__errorCount--;
+
             this.close();
+            this.init(this.filePath);
+            this.collect(you, message);
         }
 
         return this;

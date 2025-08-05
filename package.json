@@ -1,13 +1,15 @@
 {
   "name": "lks",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "批量创建符号链接，工具包",
   "main": "index.js",
   "scripts": {},
   "keywords": [],
   "author": "animator70@outlook.com",
   "license": "MulanPSL2",
+  "type": "commonjs",
   "devDependencies": {
+    "@types/cli-progress": "^3.11.6",
     "@types/node": "^18.19.120"
   },
   "repository": {
@@ -18,6 +20,13 @@
     {
       "url": "https://gitee.com/nextall/lks",
       "type": "gitee"
+    },
+    {
+      "url": "2226531799@qq.com",
+      "type": "email"
     }
-  ]
+  ],
+  "dependencies": {
+    "cli-progress": "^3.12.0"
+  }
 }

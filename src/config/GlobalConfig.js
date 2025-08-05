@@ -1,7 +1,6 @@
 /**
  *  运行时全局配置类
  *  @version 0.0.1
- *  @deprecated 请使用 config/GlobalConfig
  */
 
 class GlobalConfig
