@@ -17,6 +17,21 @@ const STYLE = require("./lib/style");
 const OPTION = require("./lib/option");
 
 /**
+ *  
+ *  @param {String} folder 路径
+ *  @returns {Boolean} true | false 通过 | 不通过
+ */
+function handlerDownloadingFolder(folder)
+{
+    let isPathExist = fs.existsSync(folder);
+
+    if (isPathExist && fs.statSync(folder).isFile()) return false;
+    if (!isPathExist) fs.mkdirSync(folder);
+
+    return true;
+}
+
+/**
  *  创建 meta.json 文件
  *  @param {WorkshopFile} workshopFile workshopFile
  *  @returns {void}
@@ -49,14 +64,12 @@ async function downloading(workshopFile, workerFolder)
     let folder = pt.join(workerFolder, title);
     // 文件名称
     let filename = workshopFile.id + pt.extname(workshopFile.filename) || ".vpk";
+    // 资源地址
+    let origin = Tools.validURL(workshopFile.file_url);
 
     // 处理路径路径
-    let isPathExist = fs.existsSync(folder); // false
-    if (isPathExist && fs.statSync(folder).isFile()) return Promise.reject(`ERROR: 此路径已存在，无法覆盖 => ${folder}`);
-    !isPathExist && fs.mkdirSync(folder);
-
-    // 验证资源路径
-    let origin = Tools.validURL(workshopFile.file_url);
+    if (!handlerDownloadingFolder(folder)) return Promise.reject(`ERROR: 此路径已存在，无法覆盖 => ${folder}`);
+    // 验证资源地址
     if (!origin) return Promise.reject(`ERROR: 资源链接不存在 => ${title}`);
 
     //#region 下载行为
@@ -65,7 +78,7 @@ async function downloading(workshopFile, workerFolder)
     // 创建一个下载器
     const download = new Download(origin, folder, filename, { "Connection": "keep-alive" });
     // 创建一个 FormatNumber，格式化输出数值
-    const fn = new FormatNumber(0, 1000, ["ms", "s", "min", "hours"]);
+    const fn = new FormatNumber();
     // 开始时间
     const startTime = Date.now();
     // 初始化大小
@@ -99,7 +112,7 @@ async function downloading(workshopFile, workerFolder)
     download.listener(Download.EventTypeProgress, (bCurrent, bTotal, bSpeed) =>
     {
         let size = fn.formatBytes(bCurrent);
-        let time = fn.formatNumber(Date.now() - startTime);
+        let time = fn.formatTimeMinute(Date.now() - startTime);
         let speed = fn.formatBytes(bSpeed);
 
         singleBarPayload.current = size.value + size.type;
@@ -135,7 +148,7 @@ async function downloading(workshopFile, workerFolder)
     //#endregion
 
     // 添加备注信息
-    let time = fn.formatNumber(Date.now() - startTime);
+    let time = fn.formatTimeMinute(Date.now() - startTime);
 
     workshopFile.remark = `Time: ${time.value + time.type}`;
     workshopFile.folder = folder;

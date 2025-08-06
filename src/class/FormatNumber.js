@@ -1,32 +1,39 @@
 /**
  *  转换数字单位，转换为更合适的单位
  *  适合频繁转换数字（例如字节数等）
- *  @version 0.0.3
+ *  @version 0.0.4
  */
-class FormatByte
+class formatNumber
 {
     /**
      *  @param {number} num 数
      *  @param {Number} base 被除数
      *  @param {Array<String>} levels 层级
      */
-    constructor(num, base, levels)
+    constructor(num = 0, base = 1, levels = [])
     {
         this.num = num || 0;
         this.base = base || 0;
         this.levels = levels || [];
 
+        // 字节大小
         this.__KB = 1024;
         this.__MB = this.__KB * 1024;
         this.__GB = this.__MB * 1024;
+
+        // 时间大小
+        this.__ms = 1000;
+        this.__s = this.__ms * 60;
+        this.__m = this.__s * 60;
     }
 
     /**
      *  将字节(byte)转换为最合适的单位（KB、MB、GB）
      *  @param {number} bytes 字节数
+     *  @param {number} [toFixed=2] 保留几位小数 - 2
      *  @returns {{value: number, type: "KB" | "MB" | "GB"}}
      */
-    formatBytes(bytes)
+    formatBytes(bytes, toFixed = 2)
     {
         let type = { value: 0, type: "B" };
 
@@ -51,7 +58,7 @@ class FormatByte
         }
 
         // 保留两位小数
-        type.value = parseFloat(type.value.toFixed(2));
+        type.value = parseFloat(type.value.toFixed(toFixed));
 
         return type;
     }
@@ -86,6 +93,38 @@ class FormatByte
 
         return type;
     }
+
+    /**
+     *  将时间毫秒转换为时间（ms、s、m）
+     *  @param {number} millisecond 毫秒
+     *  @param {number} [toFixed=2] 保留几位小数 - 2
+     */
+    formatTimeMinute(millisecond, toFixed = 2)
+    {
+        let type = { value: 0, type: "" };
+
+        if (!Number.isFinite(millisecond) || millisecond < 1) return type;
+
+        if (millisecond < this.__ms)
+        {
+            type.value = millisecond;
+            type.type = "ms";
+        }
+        else if (millisecond < this.__s)
+        {
+            type.value = millisecond / this.__ms;
+            type.type = "s";
+        }
+        else
+        {
+            type.value = millisecond / this.__s;
+            type.type = "m";
+        }
+
+        type.value = Number.parseFloat(type.value.toFixed(toFixed));
+
+        return type;
+    }
 }
 
-module.exports = FormatByte;
+module.exports = formatNumber;

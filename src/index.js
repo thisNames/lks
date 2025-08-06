@@ -16,8 +16,8 @@ const START_TIME = Date.now();
 // 程序结束
 process.addListener("exit", () =>
 {
-    const fn = new FormatNumber(0, 1000, ["ms", "s", "m", "h"]);
-    let time = fn.formatNumber(Date.now() - START_TIME, 2);
+    const fn = new FormatNumber();
+    let time = fn.formatTimeMinute(Date.now() - START_TIME, 0);
 
     Logger.info(`\r\nrunning time is ${time.value + time.type}`);
 });
