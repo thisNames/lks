@@ -5,6 +5,7 @@ const pt = require("node:path");
 /**
  * 执行类
  * @version 0.0.1
+ * @deprecated 请使用 cp/Executor.js 
  */
 class Executor
 {
