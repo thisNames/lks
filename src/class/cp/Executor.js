@@ -9,29 +9,83 @@ const ExecutorResult = require("./ExecutorResult");
 class Executor
 {
     /**
-     * @param {String} exe 程序路径
-     * @param {String} workSpace 子进程的当前工作目录
+     * @param {Executor} option 配置项 
      */
-    constructor(exe, workSpace = process.cwd())
+    constructor(option)
     {
-        /** @type {String} 程序路径 */
-        this.__exe = this.a_content_b(exe);
+        const {
+            exe = "",
+            workerSpace = process.cwd(),
+            params = []
+
+        } = option || {};
+
+        /** @type {String} 子进程路径 | 命令的名称 */
+        this.exe = exe;
 
         /** @type {String} 子进程的当前工作目录 */
-        this.__workSpace = this.a_content_b(workSpace);
+        this.workerSpace = workerSpace;
 
-        /** @type {String} 子进程的运行参数 */
-        this.__params = "";
+        /** @type {Array<String>} 子进程的执行参数 */
+        this.params = params;
     }
 
     /**
-     *  设置子进程运行参数
+    *  获取自己的配置
+    *  @returns {Object}
+    */
+    __getOption()
+    {
+        return {
+            exe: this.exe,
+            params: this.params,
+            command: this.__command,
+            workerSpace: this.workerSpace
+        };
+    }
+
+    /**
+     *  获取运行时的配置项
+     *  @returns {Object}
+     */
+    __getExeOption()
+    {
+        return {
+            cwd: this.workerSpace
+        };
+    }
+
+    /**
+     *  获取运行程序的字符串
+     *  @returns {String}
+     */
+    __formatParams()
+    {
+        const hasSpace = /\s/;
+        const __params = [this.exe, ...this.params];
+
+        return __params.map(p => hasSpace.test(p) ? this.a_content_b(p) : p).join(" ");
+    }
+
+    /**
+     *  为子进程添加多个个运行参数
      *  @param {...String} args 参数
      *  @returns {Executor} this
      */
-    setParams(...args)
+    addParams(...args)
     {
-        this.__params = args.map(arg => this.a_content_b(arg)).join(" ");
+        this.params.push(...args);
+        return this;
+    }
+
+    /**
+     *  为子进程添加一个运行参数
+     *  @param {...String} args 参数
+     *  @returns {Executor} this
+     */
+    addParam(param)
+    {
+        this.params.push(param);
         return this;
     }
 
@@ -41,22 +95,19 @@ class Executor
      */
     executorSync()
     {
-        const ert = new ExecutorResult(this.__exe, this.__params);
+        const ert = new ExecutorResult(this.__getOption());
 
         try
         {
-            const stdout = cp.execSync(this.__exe, {
-                cwd: this.__workSpace,
-                encoding: "utf-8",
-                input: this.__params
-            });
+            ert.command = this.__formatParams();
+            const stdout = cp.execSync(ert.command, this.__getExeOption());
 
             ert.done = true;
-            ert.stdout = stdout;
+            ert.stdout = stdout.toString();
         } catch (error)
         {
             ert.done = false;
-            ert.error = `${this.__exe} => ${error.message || "sync executor error"}`;
+            ert.errorMessage = `Sync: ${this.exe} => ${error.message || "sync executor error"}`;
         }
 
         return ert;
@@ -68,25 +119,26 @@ class Executor
     */
     executor()
     {
+        const ert = new ExecutorResult(this.__getOption());
+
         return new Promise((res, rej) =>
         {
-            const ert = new ExecutorResult(this.__exe, this.__params);
-
-            const p = cp.exec(this.__exe, { cwd: this.__workSpace, encoding: "utf-8", input: this.__params }, (err, stdout) =>
+            ert.command = this.__formatParams();
+            const p = cp.exec(ert.command, this.__getExeOption(), (error, stdout, stderr) =>
             {
-                if (err)
+                if (error)
                 {
-                    ert.error = `${this.__exe} => ${err.message || "executor error"}`;
+                    ert.errorMessage = `Async: ${this.exe} => ${error.message || "async executor error"}`;
+                    ert.stderr = stderr;
                 }
 
-                ert.done = !err;
+                ert.done = !error;
                 ert.stdout = stdout;
 
                 res(ert);
             });
 
             ert.pid = p.pid;
-            ert.exitCode = p.exitCode;
         });
     }
 
@@ -95,7 +147,7 @@ class Executor
      * @param {String} content 内容
      * @param {String} a 左追加
      * @param {String} b 右追加
-     * @returns 
+     * @returns {String}
      */
     a_content_b(content, a = "\"", b = "\"")
     {
