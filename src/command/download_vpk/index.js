@@ -87,8 +87,8 @@ async function downloading(workshopFile, workerFolder)
     const singleBarPayload = {
         current: "0B",
         complete: "进度",
-        time: 0,
-        speed: 0
+        time: "0",
+        speed: "0"
     };
     // 创建一个单进度条对象
     const bar = new SingleBar({
@@ -96,7 +96,7 @@ async function downloading(workshopFile, workerFolder)
         format: `{complete} {percentage}% {bar} {current}/${initSize.value}${initSize.type} {time} {speed}/s`,
     });
     // 创建一个加载条
-    const loading = new Loading().start("加载中...");
+    const loading = new Loading();
 
     // 监听下载事件
     // 【加载成功】
@@ -123,6 +123,9 @@ async function downloading(workshopFile, workerFolder)
 
         bar.update(currentBytes, singleBarPayload);
     });
+
+    // 显示加载条
+    loading.start("加载中...");
 
     // 开始下载
     const response = await download.start("", OPTION.option.timeout).catch(error => ({ error }));
