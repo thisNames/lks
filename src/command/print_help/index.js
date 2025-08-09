@@ -10,6 +10,8 @@ const Params = require("../../class/Params");
 const Tools = require("../../class/Tools");
 const Single = require("../../class/Single");
 
+const LINES = "=".repeat(20);
+
 /**
  *  检查依赖
  *  @param {MainRunningMeta} meta meta
@@ -76,26 +78,45 @@ function checkRequired(meta, Logger)
 function printDescriptions(meta, Logger)
 {
     // 参数命令
-    Logger.prompt("[参数命令]")
-    for (let [mapKey, params] of meta.paramsMap.entries())
+    Logger.prompt("[参数命令]");
+
+    /**
+     * @param {Array<Params>} params 
+     */
+    function __print(params, __table = "")
     {
-        Logger.info(`${mapKey || ""}  ${params.key} `);
-        Logger.info(`\t${params.description} `);
+        for (let i = 0; i < params.length; i++)
+        {
+            const param = params[i];
+
+            let __tableTmp = "" + __table;
+            let line = `${__tableTmp}[${param.mapKey}, ${param.key}]: ${param.description}`;
+
+            Logger.info(line);
+
+            if (param.children.length < 1) continue;
+
+            __print(param.children, __table + "\t");
+        }
+
+        Logger.line();
     }
+
+    __print(meta.originListParamsMapping);
 
     // 布尔命令
     Logger.prompt("[布尔命令]");
     for (let key in meta.singleMap)
     {
         let single = meta.singleMap[key];
-        Logger.info(`${single.key}`);
-        Logger.info(`\t${single.description}`);
+        Logger.info(`[${single.key}]: ${single.description}`);
     }
+    Logger.line();
 
     // 仓库
     const package = require("../../../package.json");
     Logger.warn("[获取更多]");
-    package.repositorys.forEach(item => Logger.info(`  ${item.url}（${item.type}）`));
+    package.repositorys.forEach(item => Logger.info(`  ${item.url} (${item.type})`));
 }
 
 /**
@@ -124,7 +145,7 @@ function printHelpDocument(key, helpDocumentPath, Logger)
         Logger.warn(`此命令[${key}]没有找到帮助描述文件`);
     }
 
-    Logger.info("====================");
+    Logger.info(LINES);
 }
 
 /**
@@ -141,13 +162,21 @@ function printParamsExamples(key, pm, Logger)
     let counter = pm.count < 0 ? "不定长参数" : pm.count;
     let defaulter = pm.count <= 0 ? "无" : `[${pm.defaults.join(", ")}]`;
 
-    Logger
-        .prompt(`${key}: ${pm.description} [参数命令]`)
-        .line()
-        .success(`参数个数：${counter} `)
-        .success(`默认参数：${defaulter} `)
-        .line();
+    Logger.prompt(`[${key}]: ${pm.description} [参数命令]`);
+    Logger.tip("参数说明：");
+    Logger.info(`\t参数个数：${counter}`).info(`\t默认参数：${defaulter}`);
 
+    // 子命令
+    if (pm.children.length)
+    {
+        Logger.tip("子命令：")
+        for (let i = 0; i < pm.children.length; i++)
+        {
+            const cpm = pm.children[i];
+            Logger.info(`\t${cpm.mapKey}: ${cpm.key}`);
+        }
+    }
+    Logger.tip("说明文档：");
     printHelpDocument(key, helpDocumentPath, Logger);
 }
 

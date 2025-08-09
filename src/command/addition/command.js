@@ -1,13 +1,25 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 const LoggerSaver = require("../../class/LoggerSaver");
 
-const addition = new ParamsMapping("-a", {
-    key: "--addition",
+const set_count = new ParamsMapping("c", {
+    key: "count",
+    count: 1,
+    defaults: [3],
+    description: "设置累计加法的参数长度（测试命令）",
+    example: "example/params_test_set_add.txt",
+    before: true
+});
+
+const addition = new ParamsMapping("a", {
+    key: "addition",
     count: 2,
     defaults: [0, 0],
     description: "累计加法（测试命令）",
-    example: "example/params_test_set_add.txt"
-}).addTask("--addition", (params, meta) =>
+    example: "example/params_test_set_add.txt",
+    children: [set_count]
+});
+
+addition.addTask("addition", (params, meta, __this) =>
 {
     const { singleMap, cwd } = meta;
     const workerPath = cwd || process.cwd();
@@ -26,29 +38,20 @@ const addition = new ParamsMapping("-a", {
     return sum;
 });
 
-const set_addition = new ParamsMapping("-sa", {
-    key: "--set-addition",
-    count: 1,
-    defaults: [3],
-    description: "设置累计加法的参数长度（测试命令）",
-    example: "example/params_test_set_add.txt",
-    before: true
-});
-
-set_addition.addTask("--set-addition", (params, meta) =>
+set_count.addTask("set_count", (params, meta, __this) =>
 {
     let _count = Number.parseInt(params[0]);
-    let count = Number.isFinite(_count) ? _count : set_addition.params.defaults[0];
+    let count = Number.isFinite(_count) ? _count : __this.defaults[0];
 
-    addition.params.count = count;
+    __this.parent.count = count;
 
     if (count > 0)
     {
-        addition.params.defaults = new Array(count).fill(0);
+        __this.parent.defaults = new Array(count).fill(0);
     }
 
     return count;
 });
 
-module.exports = [addition, set_addition];
+module.exports = [addition];
 

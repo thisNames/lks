@@ -2,9 +2,9 @@ const Params = require("./Params");
 
 /**
  *  参数命令映射表配置类
- *  @version 0.0.3
+ *  @version 0.0.4
  */
-class ParamsMapping
+class ParamsMapping extends Params
 {
     /**
      *  @param {String} mapKey 参数命令键
@@ -14,23 +14,10 @@ class ParamsMapping
     {
         if (params.count > params.defaults.length) throw new TypeError("Configuration Error: [count] must be <= [defaults].length");
 
-        /** @type {String} */
+        super(params);
+
+        /** @type {String} 重写参数命令键 */
         this.mapKey = mapKey;
-
-        /** @type {Params} */
-        this.params = new Params(params);
-    }
-
-    /**
-     *  添加一个任务
-     *  @param {String} name 任务名称
-     *  @param {Function} task 任务
-     *  @returns {ParamsMapping} this
-     */
-    addTask(name, task)
-    {
-        this.params.addTask(name, task);
-        return this;
     }
 }
 

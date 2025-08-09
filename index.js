@@ -1,5 +1,5 @@
 /**
- *  @version 0.0.4
+ *  @version 0.0.5
  *  @description 主执行文件（入口）
  */
 
@@ -10,7 +10,7 @@ const Tools = require("./src/class/Tools");
 const Single = require("./src/class/Single");
 
 // src index.js
-const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./src");
+const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP, ORIGIN_LIST_PARAMS_MAPPING } = require("./src");
 
 //#region 初始化常量
 const STATIC_META = new MainRunningMeta({
@@ -18,7 +18,8 @@ const STATIC_META = new MainRunningMeta({
     filename: __filename,
     singleMap: SINGLE_MAP,
     paramsMap: PARAMS_MAP,
-    paramsKeyMap: PARAMS_KEY_MAP
+    paramsKeyMap: PARAMS_KEY_MAP,
+    originListParamsMapping: ORIGIN_LIST_PARAMS_MAPPING
 });
 //#endregion
 

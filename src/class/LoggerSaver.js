@@ -3,7 +3,7 @@ const MessageCollect = require("./MessageCollect");
 
 /**
  *  日志保存类
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 class LoggerSaver
 {
@@ -88,6 +88,12 @@ class LoggerSaver
     prompt(...args)
     {
         return this.__log(Logger.CYAN, ...args);
+    }
+
+    /** 指点 */
+    tip(...args)
+    {
+        return this.__log(Logger.MAGENTA, ...args);
     }
 
     /** 空一行 */

@@ -1,7 +1,7 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 
-const version = new ParamsMapping("-v", {
-    key: "--version",
+const version = new ParamsMapping("v", {
+    key: "version",
     count: 0,
     defaults: [],
     description: "显示当前版本"

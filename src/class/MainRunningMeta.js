@@ -4,7 +4,7 @@ const Single = require("./Single");
 
 /**
  *  @description 运行命令时的元数据信息对象，由入口文件定义数据
- *  @version 0.0.4
+ *  @version 0.0.5
  */
 class MainRunningMeta
 {
@@ -36,6 +36,9 @@ class MainRunningMeta
 
         /** @type {Map<String, Params>} params.key 参数命令映射表 */
         this.paramsKeyMap = meta.paramsKeyMap;
+
+        /** @type {Array<Params>} 原始的参数命令集合 */
+        this.originListParamsMapping = meta.originListParamsMapping;
     }
 }
 
