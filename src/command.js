@@ -1,6 +1,6 @@
 /**
  *  自动注册参数命令模块
- *  @version 0.0.2
+ *  @version 0.0.3
  */
 
 const fs = require("node:fs");
@@ -107,7 +107,7 @@ function requiredModules(models)
 
 /**
  *  设置参数命令的等级，并将所有的子命令都提取出来
- *  @version 0.0.1
+ *  @version 0.0.2
  *  @param {Array<ParamsMapping>} listParamsMapping 参数命令集合
  *  @returns {Array<ParamsMapping>} 新的参数命令集合
  */
@@ -121,6 +121,12 @@ function setParamsMappingLevels(listParamsMapping, __level = 1, __mapKey = "", _
         paramsMapping.__level = __level;
         paramsMapping.before = __before;
         paramsMapping.parent = __parent;
+
+        if (!paramsMapping.parentPrefix)
+        {
+            __mapKey = "";
+            __key = "";
+        }
 
         paramsMapping.mapKey = __mapKey + levelChars + paramsMapping.mapKey;
         paramsMapping.key = __key + levelChars + paramsMapping.key;

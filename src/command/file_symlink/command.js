@@ -9,9 +9,10 @@ const set_display = new ParamsMapping("dis", {
     description: "仅显示收集到的文件集合，不创建符号链接",
     example: "",
     before: true,
-    linkSymbol: "",
-    accordingLevelRepeat: false
-})
+    linkSymbol: "-",
+    accordingLevelRepeat: true,
+    parentPrefix: false
+});
 
 const file_symlink = new ParamsMapping("*", {
     key: "*",
@@ -21,7 +22,8 @@ const file_symlink = new ParamsMapping("*", {
     example: "example/params_file_symlink.txt",
     children: [set_display],
     linkSymbol: "",
-    accordingLevelRepeat: false
+    accordingLevelRepeat: false,
+    parentPrefix: false
 })
 
 file_symlink.addTask("file_symlink", (params, meta, __this) => require("./index")(params, meta, __this));

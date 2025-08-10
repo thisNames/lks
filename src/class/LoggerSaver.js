@@ -3,7 +3,7 @@ const MessageCollect = require("./MessageCollect");
 
 /**
  *  日志保存类
- *  @version 0.0.3
+ *  @version 0.0.4
  */
 class LoggerSaver
 {
@@ -93,7 +93,7 @@ class LoggerSaver
     /** 指点 */
     tip(...args)
     {
-        return this.__log(Logger.MAGENTA, ...args);
+        return this.__log(Logger.LIGHT_BLUE, ...args);
     }
 
     /** 空一行 */

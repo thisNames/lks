@@ -19,7 +19,7 @@ const MainRunningMeta = require("./MainRunningMeta");
 
 /**
  *  参数命令参数类
- *  @version 0.0.6
+ *  @version 0.0.7
  *  @description
  *  执行顺序：
  *      前置命令先执行（running），如果都是前置，那么就按照终端输入的顺序执行（先后顺序执行）；
@@ -43,7 +43,8 @@ class Params extends Single
             before = false,
             children = [],
             linkSymbol = "-",
-            accordingLevelRepeat = true
+            accordingLevelRepeat = true,
+            parentPrefix = true
         } = option || {};
 
         super(key, description, example);
@@ -68,6 +69,9 @@ class Params extends Single
 
         /** @type {Boolean} 是否按照等级重复链接符号，默认 true */
         this.accordingLevelRepeat = accordingLevelRepeat;
+
+        /** @type {Boolean} 命令是否使用父命令作为前缀，默认 true */
+        this.parentPrefix = parentPrefix;
         //#endregion
 
 

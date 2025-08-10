@@ -1,13 +1,13 @@
 /**
  *  打印类
- *  @version 0.0.1
+ *  @version 0.0.2
  */
 class Logger
 {
     /** 统一的样式重置符 白色 */
     static RESET = "\x1b[0m";
     /** 绿色 */
-    static GREEN = "\x1b[32m";
+    static GREEN = "\x1b[92m";
     /** 黄色 */
     static YELLOW = "\x1b[33m";
     /** 红色 */
@@ -21,6 +21,8 @@ class Logger
     static CYAN = "\x1b[36m";
     /** 灰色 */
     static GRAY = "\x1b[90m";
+    /** 亮蓝色 */
+    static LIGHT_BLUE = "\x1b[94m";
 
     /** 工具方法 */
     static log(color, ...args)
