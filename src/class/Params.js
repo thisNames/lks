@@ -16,12 +16,13 @@ const MainRunningMeta = require("./MainRunningMeta");
  *  @callback RunningAfterTaskCallback
  *  @param {Object} result 命令的返回结果
  *  @param {MainRunningMeta} meta 其他参数
- *  @param {Params} __this 参数命令对象
+ *  @param {String} taskName 任务名称
+ *  @returns {void}
  */
 
 /**
  *  参数命令参数类
- *  @version 0.0.9
+ *  @version 0.1.0
  *  @description
  *  执行顺序：
  *      前置命令先执行（running），如果都是前置，那么就按照终端输入的顺序执行（先后顺序执行）；
@@ -98,13 +99,13 @@ class Params extends Single
         this.__taskResults = new Map();
 
         /** @type {Map<String, RunningAfterTaskCallback>} 任务结束数组 */
-        this.__tasksAfter = new Map();// TODO: __tasksAfter
+        this.__tasksAfter = new Map();
 
         /** @type {Map<String, RunningAfterTaskCallback>} 所有任务结束数组 */
-        this.__allTasksAfter = new Map();// TODO: __allTasksAfter
+        this.__allTasksAfter = new Map();
 
         /** @type {Number} 当前参数命令的执行索引，-1表示根本没有执行过；索引从0开始，表示你是第几个被执行的参数命令 */
-        this.__index = -1;// TODO: __index
+        this.__index = -1;
 
         /** @type {Number} 指令的等级，从大到小执行 */
         this.__level = 0;
@@ -133,7 +134,7 @@ class Params extends Single
         this.__tasksAfter.forEach((v, k) =>
         {
             const result = this.__taskResults.get(k);
-            v(result, this.params, meta, this);
+            v(result, meta, k);
         });
 
         return this;
@@ -161,7 +162,7 @@ class Params extends Single
         this.__allTasksAfter.forEach((v, k) =>
         {
             const result = this.__taskResults.get(k);
-            v(result, this.params, meta, this);
+            v(result, meta, k);
         });
     }
 
@@ -186,7 +187,8 @@ class Params extends Single
     {
         this.__tasks.forEach((v, k) =>
         {
-            this.__taskResults.set(k, v(this.params, meta, this, k));
+            const result = v(this.params, meta, this, k);
+            this.__taskResults.set(k, result);
         });
         return this;
     }

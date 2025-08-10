@@ -1,5 +1,5 @@
 /**
- *  @version 0.0.5
+ *  @version 0.0.6
  *  @description 主执行文件（入口）
  */
 
@@ -8,6 +8,7 @@ const Params = require("./src/class/Params");
 const MainRunningMeta = require("./src/class/MainRunningMeta");
 const Tools = require("./src/class/Tools");
 const Single = require("./src/class/Single");
+const TodoTasks = require("./src/class/TodoTasks");
 
 // src index.js
 const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP, ORIGIN_LIST_PARAMS_MAPPING } = require("./src");
@@ -136,13 +137,16 @@ function initSingles(meta, processArgv)
 
 /**
  *  初始化 before 参数指令
- *  @version 0.0.2
+ *  @version 0.0.3
  *  @param {MainRunningMeta} meta 忽略布尔命令
  *  @param {Array<String>} processArgv 原始参数数组
  *  @returns {void}
  */
 function initBeforeParams(meta, processArgv)
 {
+    // 待执行的任务队列
+    const todoTasks = new TodoTasks();
+
     let i = 0
     for (; i < processArgv.length; i++)
     {
@@ -156,12 +160,20 @@ function initBeforeParams(meta, processArgv)
 
         pm.include = true;
 
-        fillParamsFSplice(pm, meta.singleMap.dvp.key, i + 1, processArgv).running({ ...meta, key });
+        // fillParamsFSplice(pm, meta.singleMap.dvp.key, i + 1, processArgv).running({ ...meta, key });
+
+        // 填充参数 添加任务队列
+        fillParamsFSplice(pm, meta.singleMap.dvp.key, i + 1, processArgv);
+        todoTasks.addTodoTask(pm, { ...meta, key });
 
         // 踢出去匹配到的指令，并且倒退回去，继续下次循环判断是否还有下一个指令
         processArgv.splice(i, 1);
         i--;
     }
+
+    // 执行任务队列
+    todoTasks.sort().running();
+    todoTasks.allAfterRunning();
 }
 
 /**
@@ -179,7 +191,7 @@ function initProcessArgs(meta, processArgv)
 
 /**
  *  运行 Params 参数命令
- *  @version 0.0.3
+ *  @version 0.0.4
  *  @param {Map<String, Params>} paramsMap 参数命令映射表 mapKey
  *  @param {Map<String, Params>} paramKeyMap 参数命令映射表 params.key
  *  @param {String} dvpKey 默认参数占位符
@@ -189,6 +201,9 @@ function initProcessArgs(meta, processArgv)
  */
 function running(meta, processArgv)
 {
+    // 待执行的任务队列
+    const todoTasks = new TodoTasks();
+
     // 解析参数并运行
     while (processArgv.length > 0)
     {
@@ -201,8 +216,16 @@ function running(meta, processArgv)
         pm.include = true;
 
         // 填充参数 运行任务
-        fillParams(pm, meta.singleMap.dvp.key, processArgv).running({ ...meta, key });
+        // fillParams(pm, meta.singleMap.dvp.key, processArgv).running({ ...meta, key });
+
+        // 填充参数 添加任务队列
+        fillParams(pm, meta.singleMap.dvp.key, processArgv);
+        todoTasks.addTodoTask(pm, { ...meta, key });
     }
+
+    // 执行任务队列
+    todoTasks.sort().running();
+    todoTasks.allAfterRunning();
 }
 
 /**
