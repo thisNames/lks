@@ -1,8 +1,6 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 const Tools = require("../../class/Tools");
 
-const OPTION = require("./lib/option");
-
 const set_api = new ParamsMapping("api", {
     key: "api",
     count: 1,
@@ -25,6 +23,8 @@ download_vpk.addTask("download_vpk", (params, meta, __this) => require("./index"
 
 set_api.addTask("set_api", (params, meta, __this) =>
 {
+    const OPTION = require("./lib/option");
+
     if (Tools.equalString(params[0], "Steam", true)) return OPTION.setSteam();
     if (Tools.equalString(params[0], "SteamIO", true)) return OPTION.setSteamIO();
     OPTION.setSteam();

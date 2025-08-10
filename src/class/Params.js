@@ -19,7 +19,7 @@ const MainRunningMeta = require("./MainRunningMeta");
 
 /**
  *  参数命令参数类
- *  @version 0.0.7
+ *  @version 0.0.8
  *  @description
  *  执行顺序：
  *      前置命令先执行（running），如果都是前置，那么就按照终端输入的顺序执行（先后顺序执行）；
@@ -47,7 +47,11 @@ class Params extends Single
             parentPrefix = true
         } = option || {};
 
-        super(key, description, example);
+        super({
+            key: key,
+            description: description,
+            example: example
+        });
 
         /** @type {String} 参数命令键 */
         this.mapKey = mapKey;

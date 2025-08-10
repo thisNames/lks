@@ -5,13 +5,28 @@ class GlobalSingle
     constructor()
     {
         /** @type {Single} 占位符，表示使用默认参数（前提是有） */
-        this.dvp = new Single("$D", "占位符，表示使用默认参数（前提是有）", "example/dvp.txt", __filename);
+        this.dvp = new Single({
+            key: "$D",
+            description: "占位符，表示使用默认参数（前提是有）",
+            example: "example/dvp.txt",
+            modulePath: __filename
+        });
 
         /** @type {Single} 启用递归 */
-        this.isRecursion = new Single("-R", "启用递归", "", __filename);
+        this.isRecursion = new Single({
+            key: "-R",
+            description: "启用递归",
+            example: "",
+            modulePath: __filename
+        });
 
         /** @type {Single} 为本次操作保存日志 */
-        this.isSaveLog = new Single("-L", "为本次操作保存日志", "", __filename);
+        this.isSaveLog = new Single({
+            key: "-L",
+            description: "为本次操作保存日志",
+            example: "",
+            modulePath: __filename
+        });
     }
 }
 

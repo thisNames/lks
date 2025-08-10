@@ -1,7 +1,5 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 
-const OPTION = require("./lib/option");
-
 const set_display = new ParamsMapping("dis", {
     key: "display",
     count: 0,
@@ -30,6 +28,8 @@ file_symlink.addTask("file_symlink", (params, meta, __this) => require("./index"
 
 set_display.addTask("set_display", (params, meta, __this) =>
 {
+    const OPTION = require("./lib/option");
+
     OPTION.isDisplayOnly = true;
 });
 
