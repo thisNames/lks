@@ -136,7 +136,7 @@ function initSingles(meta, processArgv)
 
 /**
  *  初始化 before 参数指令
- *  @version 0.0.1
+ *  @version 0.0.2
  *  @param {MainRunningMeta} meta 忽略布尔命令
  *  @param {Array<String>} processArgv 原始参数数组
  *  @returns {void}
@@ -156,7 +156,7 @@ function initBeforeParams(meta, processArgv)
 
         pm.include = true;
 
-        fillParamsFSplice(pm, meta.singleMap.dvp, i + 1, processArgv).running({ ...meta, key });
+        fillParamsFSplice(pm, meta.singleMap.dvp.key, i + 1, processArgv).running({ ...meta, key });
 
         // 踢出去匹配到的指令，并且倒退回去，继续下次循环判断是否还有下一个指令
         processArgv.splice(i, 1);

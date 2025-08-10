@@ -12,14 +12,6 @@ class GlobalSingle
             modulePath: __filename
         });
 
-        /** @type {Single} 启用递归 */
-        this.isRecursion = new Single({
-            key: "-R",
-            description: "启用递归",
-            example: "",
-            modulePath: __filename
-        });
-
         /** @type {Single} 为本次操作保存日志 */
         this.isSaveLog = new Single({
             key: "-L",

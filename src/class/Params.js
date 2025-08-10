@@ -7,6 +7,8 @@ const MainRunningMeta = require("./MainRunningMeta");
  *  @param {Array<String>} params 命令行参数
  *  @param {MainRunningMeta} meta 其他参数
  *  @param {Params} __this 参数命令对象
+ *  @param {String} taskName 任务名称
+ *  @returns {Object}
  */
 
 /**
@@ -19,7 +21,7 @@ const MainRunningMeta = require("./MainRunningMeta");
 
 /**
  *  参数命令参数类
- *  @version 0.0.8
+ *  @version 0.0.9
  *  @description
  *  执行顺序：
  *      前置命令先执行（running），如果都是前置，那么就按照终端输入的顺序执行（先后顺序执行）；
@@ -184,7 +186,7 @@ class Params extends Single
     {
         this.__tasks.forEach((v, k) =>
         {
-            this.__taskResults.set(k, v(this.params, meta, this));
+            this.__taskResults.set(k, v(this.params, meta, this, k));
         });
         return this;
     }

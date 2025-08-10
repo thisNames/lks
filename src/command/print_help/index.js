@@ -7,6 +7,7 @@ const pt = require("node:path");
 const LoggerSaver = require("../../class/LoggerSaver");
 const MainRunningMeta = require("../../class/MainRunningMeta");
 const Params = require("../../class/Params");
+const ParamsMapping = require("../../class/ParamsMapping");
 const Tools = require("../../class/Tools");
 const Single = require("../../class/Single");
 
@@ -166,6 +167,13 @@ function printParamsExamples(key, pm, Logger)
     Logger.tip("参数说明：");
     Logger.info(`\t参数个数：${counter}`).info(`\t默认参数：${defaulter}`);
 
+    // 父命令
+    if (pm.parent instanceof ParamsMapping || pm.parent instanceof Params)
+    {
+        Logger.tip("父命令：");
+        Logger.info(`\t[${pm.parent.mapKey}, ${pm.parent.key}]: ${pm.parent.description}`);
+    }
+
     // 子命令
     if (pm.children.length)
     {
@@ -173,7 +181,7 @@ function printParamsExamples(key, pm, Logger)
         for (let i = 0; i < pm.children.length; i++)
         {
             const cpm = pm.children[i];
-            Logger.info(`\t${cpm.mapKey}: ${cpm.key}`);
+            Logger.info(`\t[${cpm.mapKey}, ${cpm.key}]: ${cpm.description}`);
         }
     }
     Logger.tip("说明文档：");
@@ -231,15 +239,14 @@ function printExamples(meta, params, Logger)
 }
 
 /**
- *  入口函数
- *  @param {Array<String>} params 参数数组
+ *  @param {Array<String>} params 参数集合
  *  @param {MainRunningMeta} meta meta
- *  @param {Params} __this 当前运行的参数命令对象
- *  @returns {void}
+ *  @param {Params} __this 当前参数命令对象
+ *  @param {String} taskName 任务名称
  */
-function main(params, meta, __this)
+function main(params, meta, __this, taskName)
 {
-    const Logger = new LoggerSaver("Print_Help_Task", meta.cwd, meta.singleMap.isSaveLog.include);
+    const Logger = new LoggerSaver(taskName, meta.cwd, meta.singleMap.isSaveLog.include);
 
     if (!checkRequired(meta, Logger)) return Logger.close();
 

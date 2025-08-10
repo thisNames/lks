@@ -82,13 +82,13 @@ function requiredModules(models)
             listParamsMapping = require(model);
         } catch (error)
         {
-            Logger.warn(`Module load error in [${model}], ${error.message}. Please check module`);
+            Logger.error(`Module load error in [${model}], ${error.stack || error.message}`);
             continue;
         }
 
         if (!Array.isArray(listParamsMapping))
         {
-            Logger.warn(`Module return type error in [${model}], expected [Array<class/${ParamsMapping.name}>]. Please check module`);
+            Logger.error(`Module return type error in [${model}], expected [Array<class/${ParamsMapping.name}>]`);
             continue;
         }
 
@@ -170,7 +170,7 @@ function registersParamsMapping(listParamsMapping)
  *  @param {String} m1 模块 1 路径
  *  @param {String} m2 模块 2 路径
  */
-function repeatedlyDefinedError(key = "unknown", m1 = "unknown1", m2 = "unknown2")
+function repeatedlyDefinedError(key = "unknownKey", m1 = "unknown1", m2 = "unknown2")
 {
     let message = `Repeatedly defined command [${key}]:`;
     let error = `${message}\r\ndefined 1: ${m1}\r\ndefined 2: ${m2}`;

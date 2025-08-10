@@ -12,6 +12,9 @@ class ParamsMapping extends Params
      */
     constructor(mapKey, params)
     {
+        // 必传的参数校验
+        if (!Number.isFinite(params.count)) throw new TypeError("Configuration Error: [count] must be isFinite Number");
+        if (!Array.isArray(params.defaults)) throw new TypeError("Configuration Error: [defaults] must be [Array]");
         if (params.count > params.defaults.length) throw new TypeError("Configuration Error: [count] must be <= [defaults].length");
 
         super(params);

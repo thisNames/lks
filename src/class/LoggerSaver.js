@@ -3,7 +3,7 @@ const MessageCollect = require("./MessageCollect");
 
 /**
  *  日志保存类
- *  @version 0.0.4
+ *  @version 0.0.5
  */
 class LoggerSaver
 {
@@ -14,8 +14,8 @@ class LoggerSaver
      */
     constructor(filename, saveFolder, isSave)
     {
-        this.saveFolder = saveFolder;
-        this.filename = filename;
+        this.saveFolder = saveFolder || process.cwd();
+        this.filename = filename || `default.log`;
         this.isSave = isSave;
 
         /** @type {MessageCollect} */
@@ -33,6 +33,7 @@ class LoggerSaver
     {
         if (this.__logFile)
         {
+            this.line().tip(`LoggerSaver [${this.filename}] => ` + this.saveFolder);
             this.__logFile.close();
         }
     }

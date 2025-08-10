@@ -15,18 +15,40 @@
 ### 功能模块定义：
 - 模块里必须要有一个 command.js 文件
 - command.js 并且返回一个数组，数组项是参数命令映射表配置类 `（class/ParamsMapping）`
-- 例如：
+- `command.js`:
 ```js
 const ParamsMapping = require("../../class/ParamsMapping");
-// 定义
-const version = new ParamsMapping("-v", {
-    key: "--version",
+
+// 显示当前版本
+const version = new ParamsMapping("v", {
+    key: "version",
     count: 0,
     defaults: [],
     description: "显示当前版本"
-}).addTask("print_version", (params, meta, __this) => require("./index")(params, meta, __this));
-// 暴露
+});
+
+// 注册任务，使用动态导入模块（推荐）
+version.addTask("version", (...args) => require("./index")(...args));
+
 module.exports = [version];
+```
+- `index.js`:
+```js
+const Params = require("../../class/Params");
+const MainRunningMeta = require("../../class/MainRunningMeta");
+
+/**
+ *  @description 任务函数
+ *  @param {Array<String>} params 参数集合
+ *  @param {MainRunningMeta} meta meta
+ *  @param {Params} __this 当前参数命令对象
+ *  @param {String} taskName 任务名称
+ */
+module.exports = function (param, meta, __this, taskName)
+{
+   // ...you code
+};
+
 ```
 
 ### 引用

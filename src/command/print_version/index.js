@@ -1,12 +1,18 @@
 const LoggerSaver = require("../../class/LoggerSaver");
+const Params = require("../../class/Params");
+const MainRunningMeta = require("../../class/MainRunningMeta");
 
-module.exports = function (param, meta, __this)
+/**
+ *  @param {Array<String>} params 参数集合
+ *  @param {MainRunningMeta} meta meta
+ *  @param {Params} __this 当前参数命令对象
+ *  @param {String} taskName 任务名称
+ */
+module.exports = function (param, meta, __this, taskName)
 {
-    const { singleMap, cwd } = meta;
-    let workerPath = cwd || process.cwd();
+    const Logger = new LoggerSaver(taskName, meta.cwd, meta.singleMap.isSaveLog.include);
+    const package = require("../../../package.json");
 
-    const Logger = new LoggerSaver("Version_Task", workerPath, singleMap.isSaveLog.include);
-    let package = require("../../../package.json");
     Logger.info("v" + package.version).close();
 
     return package.version;

@@ -1,33 +1,48 @@
 const ParamsMapping = require("../../class/ParamsMapping");
-const Tools = require("../../class/Tools");
 
-const set_api = new ParamsMapping("api", {
+// 打印所有配置
+const printOptions = new ParamsMapping("opt", {
+    key: "option",
+    count: 0,
+    defaults: [],
+    description: "打印所有配置",
+    before: true,
+});
+
+// 设置 api
+const setApi = new ParamsMapping("api", {
     key: "api",
     count: 1,
     defaults: ["steam"],
     description: "设置下载（免费的）Steam 创意工坊的文件使用的 API [Steam/SteamIO]",
-    example: "",
     before: true
 });
 
-const download_vpk = new ParamsMapping("dv", {
+// 下载（免费的）Steam 创意工坊的文件
+const downloadFreeVpk = new ParamsMapping("dv", {
     key: "dlvpk",
     count: -1,
     defaults: [],
     description: "下载（免费的）Steam 创意工坊的文件",
     example: "example/params_download_steam_vpk.txt",
-    children: [set_api]
+    children: [setApi, printOptions]
 });
 
-download_vpk.addTask("download_vpk", (params, meta, __this) => require("./index")(params, meta, __this));
-
-set_api.addTask("set_api", (params, meta, __this) =>
+// 注册任务
+downloadFreeVpk.addTask("downloadFreeVpk", (...args) =>
 {
-    const OPTION = require("./lib/option");
-
-    if (Tools.equalString(params[0], "Steam", true)) return OPTION.setSteam();
-    if (Tools.equalString(params[0], "SteamIO", true)) return OPTION.setSteamIO();
-    OPTION.setSteam();
+    require("./index")(...args);
 });
 
-module.exports = [download_vpk];
+// 子命令
+setApi.addTask("downloadFreeVpk.setApi", (params, meta, __this) =>
+{
+    require("./lib/set_options").setApi(params[0]);
+});
+
+printOptions.addTask("downloadFreeVpk.printOptions", (...args) =>
+{
+    require("./lib/print_option")(...args);
+});
+
+module.exports = [downloadFreeVpk];

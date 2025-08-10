@@ -10,14 +10,43 @@ const WorkshopFile = require("../../class/WorkshopFile");
 const Loading = require("../../class/Loading");
 const Tools = require("../../class/Tools");
 const FormatNumber = require("../../class/FormatNumber");
+const MainRunningMeta = require("../../class/MainRunningMeta");
+const Params = require("../../class/Params");
 
-const steamSearch = require("./steam_api");
-const SteamIOSearch = require("./steam_io_api");
 const STYLE = require("./lib/style");
 const OPTION = require("./lib/option");
 
 /**
- *  
+ *  切换搜索 API 的源
+ *  @param {String} key api 名称
+ *  @returns {{ name: String, callback: (ids: Array<string>) => Promise<Array<WorkshopFile>>}}
+ */
+function switchApiOrigin(key)
+{
+    // 源
+    const origin = {
+        steam: () => require("./steam_api"),
+        steamio: () => require("./steam_io_api")
+    };
+
+    const callback = Reflect.get(origin, key);
+
+    if (typeof callback === "function")
+    {
+        return {
+            name: key,
+            callback: callback()
+        };
+    }
+
+    return {
+        name: "steam",
+        callback: origin.steam()
+    };
+}
+
+/**
+ *  处理下载目录路径
  *  @param {String} folder 路径
  *  @returns {Boolean} true | false 通过 | 不通过
  */
@@ -128,7 +157,7 @@ async function downloading(workshopFile, workerFolder)
     loading.start("加载中...");
 
     // 开始下载
-    const response = await download.start("", OPTION.option.timeout).catch(error => ({ error }));
+    const response = await download.start("", OPTION.timeout).catch(error => ({ error }));
 
     // 下载失败
     if (response.error || response.code != 200)
@@ -220,36 +249,30 @@ function ivalParams(params, Logger)
 
 /**
  *  下载 Steam 创意工坊的文件（免费的）
- *  @param {Array<String>} params 参数数组
- *  @param {Object} meta 附加数据对象
- *  @returns {Promise<void>}
+ *  @param {Array<String>} params 参数集合
+ *  @param {MainRunningMeta} meta meta
+ *  @param {Params} __this 当前参数命令对象
+ *  @param {String} taskName 任务名称
  */
-async function main(params, meta, __this)
+async function main(params, meta, __this, taskName)
 {
     const { singleMap, cwd } = meta;
     const workerFolder = cwd || process.cwd();
     const isSaveLog = singleMap.isSaveLog.include;
+    const Logger = new LoggerSaver(taskName, workerFolder, isSaveLog);
 
-    const Logger = new LoggerSaver("DownloadVPK_Task", workerFolder, isSaveLog);
     const ids = ivalParams(params, Logger);
     if (ids.length < 1) return;
 
     // 开始搜索
-    const apiName = OPTION.option.toggle.steamio ? "[SteamIO]" : "[Steam]";
-    const load = new Loading().start(`${apiName}🔍...`);
+    const load = new Loading();
+    const searching = switchApiOrigin(OPTION.api);
 
-    /** @type {Array<WorkshopFile>} 文件集合 */
-    let workshopFiles = [];
+    load.start(`[${searching.name}].🔍`);
 
-    if (OPTION.option.toggle.steamio)
-    {
-        workshopFiles = await SteamIOSearch(ids).catch(error => ({ error }));
-    }
-    else
-    {
-        workshopFiles = await steamSearch(ids).catch(error => ({ error }));
-    }
+    const workshopFiles = await searching.callback(ids).catch(error => ({ error }));
 
+    // 搜索失败
     if (workshopFiles.error)
     {
         load.stop(false, "搜索失败");
