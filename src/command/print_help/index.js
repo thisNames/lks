@@ -71,6 +71,38 @@ function checkRequired(meta, Logger)
 }
 
 /**
+ *  打印 packages.json
+ *  @param {LoggerSaver} Logger 日志记录器
+ *  @returns {void}
+ */
+function printPackages(Logger)
+{
+    let package = null;
+
+    try
+    {
+        package = require("../../../package.json");
+    } catch (error)
+    {
+        return;
+    }
+
+    // 仓库
+    const listRepository = package?.listRepository;
+    if (Array.isArray(listRepository))
+    {
+        Logger.tip("[获取更多]");
+        for (let i = 0; i < listRepository.length; i++)
+        {
+            const lr = listRepository[i];
+            if (typeof lr !== "object") continue;
+
+            Logger.info(`\t${lr.url} (${lr.type})`);
+        }
+    }
+}
+
+/**
  *  打印描述
  *  @param {MainRunningMeta} meta
  *  @param {LoggerSaver} Logger 日志记录器
@@ -114,10 +146,7 @@ function printDescriptions(meta, Logger)
     }
     Logger.line();
 
-    // 仓库
-    const package = require("../../../package.json");
-    Logger.warn("[获取更多]");
-    package.repositorys.forEach(item => Logger.info(`  ${item.url} (${item.type})`));
+    printPackages(Logger);
 }
 
 /**

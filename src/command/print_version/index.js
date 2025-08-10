@@ -11,9 +11,18 @@ const MainRunningMeta = require("../../class/MainRunningMeta");
 module.exports = function (param, meta, __this, taskName)
 {
     const Logger = new LoggerSaver(taskName, meta.cwd, meta.singleMap.isSaveLog.include);
-    const package = require("../../../package.json");
+    let package = {};
+    let version = "";
 
-    Logger.info("v" + package.version).close();
+    try
+    {
+        package = require("../../../package.json");
+        version = package.version;
+    } catch (error)
+    {
+        version = "unknown";
+    }
 
-    return package.version;
+    Logger.info("v" + version);
+    Logger.close();
 };
