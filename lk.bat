@@ -1,11 +1,14 @@
 @ECHO off
 
-@REM	Author:			XUJIAGUO
+@REM	Author:			立秋枫林晚
 @REM	Version:		1.0.1（测试版）
 @REM	Description:	批量创建文件符号链接
 @REM	Running:		Terminal Exec
 @REM	CharCode:		GBK/GB2312
 @REM	lastUpdate:		2024年9月11日17点33分
+@REM	Gitee:			https://gitee.com/nextall/lks
+@REM	Github:			https://github.com/thisNames/lks
+@REM	Email:			2226531799@qq.com
 
 @REM 源目录
 set SOURCE_PATH=%1

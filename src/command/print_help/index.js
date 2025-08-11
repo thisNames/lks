@@ -7,8 +7,11 @@ const pt = require("node:path");
 const LoggerSaver = require("../../class/LoggerSaver");
 const MainRunningMeta = require("../../class/MainRunningMeta");
 const Params = require("../../class/Params");
+const ParamsMapping = require("../../class/ParamsMapping");
 const Tools = require("../../class/Tools");
 const Single = require("../../class/Single");
+
+const LINES = "=".repeat(20);
 
 /**
  *  检查依赖
@@ -68,6 +71,38 @@ function checkRequired(meta, Logger)
 }
 
 /**
+ *  打印 packages.json
+ *  @param {LoggerSaver} Logger 日志记录器
+ *  @returns {void}
+ */
+function printPackages(Logger)
+{
+    let package = null;
+
+    try
+    {
+        package = require("../../../package.json");
+    } catch (error)
+    {
+        return;
+    }
+
+    // 仓库
+    const listRepository = package?.listRepository;
+    if (Array.isArray(listRepository))
+    {
+        Logger.tip("[获取更多]");
+        for (let i = 0; i < listRepository.length; i++)
+        {
+            const lr = listRepository[i];
+            if (typeof lr !== "object") continue;
+
+            Logger.info(`\t${lr.url} (${lr.type})`);
+        }
+    }
+}
+
+/**
  *  打印描述
  *  @param {MainRunningMeta} meta
  *  @param {LoggerSaver} Logger 日志记录器
@@ -76,26 +111,42 @@ function checkRequired(meta, Logger)
 function printDescriptions(meta, Logger)
 {
     // 参数命令
-    Logger.prompt("[参数命令]")
-    for (let [mapKey, params] of meta.paramsMap.entries())
+    Logger.prompt("[参数命令]");
+
+    /**
+     * @param {Array<Params>} params 
+     */
+    function __print(params, __table = "")
     {
-        Logger.info(`${mapKey || ""}  ${params.key} `);
-        Logger.info(`\t${params.description} `);
+        for (let i = 0; i < params.length; i++)
+        {
+            const param = params[i];
+
+            let __tableTmp = "" + __table;
+            let line = `${__tableTmp}[${param.mapKey}, ${param.key}]: ${param.description}`;
+
+            Logger.info(line);
+
+            if (param.children.length < 1) continue;
+
+            __print(param.children, __table + "\t");
+        }
+
+        Logger.line();
     }
+
+    __print(meta.originListParamsMapping);
 
     // 布尔命令
     Logger.prompt("[布尔命令]");
     for (let key in meta.singleMap)
     {
         let single = meta.singleMap[key];
-        Logger.info(`${single.key}`);
-        Logger.info(`\t${single.description}`);
+        Logger.info(`[${single.key}]: ${single.description}`);
     }
+    Logger.line();
 
-    // 仓库
-    const package = require("../../../package.json");
-    Logger.warn("[获取更多]");
-    package.repositorys.forEach(item => Logger.info(`  ${item.url}（${item.type}）`));
+    printPackages(Logger);
 }
 
 /**
@@ -124,7 +175,7 @@ function printHelpDocument(key, helpDocumentPath, Logger)
         Logger.warn(`此命令[${key}]没有找到帮助描述文件`);
     }
 
-    Logger.info("====================");
+    Logger.info(LINES);
 }
 
 /**
@@ -141,13 +192,28 @@ function printParamsExamples(key, pm, Logger)
     let counter = pm.count < 0 ? "不定长参数" : pm.count;
     let defaulter = pm.count <= 0 ? "无" : `[${pm.defaults.join(", ")}]`;
 
-    Logger
-        .prompt(`${key}: ${pm.description} [参数命令]`)
-        .line()
-        .success(`参数个数：${counter} `)
-        .success(`默认参数：${defaulter} `)
-        .line();
+    Logger.prompt(`[${key}]: ${pm.description} [参数命令]`);
+    Logger.tip("参数说明：");
+    Logger.info(`\t参数个数：${counter}`).info(`\t默认参数：${defaulter}`);
 
+    // 父命令
+    if (pm.parent instanceof ParamsMapping || pm.parent instanceof Params)
+    {
+        Logger.tip("父命令：");
+        Logger.info(`\t[${pm.parent.mapKey}, ${pm.parent.key}]: ${pm.parent.description}`);
+    }
+
+    // 子命令
+    if (pm.children.length)
+    {
+        Logger.tip("子命令：")
+        for (let i = 0; i < pm.children.length; i++)
+        {
+            const cpm = pm.children[i];
+            Logger.info(`\t[${cpm.mapKey}, ${cpm.key}]: ${cpm.description}`);
+        }
+    }
+    Logger.tip("说明文档：");
     printHelpDocument(key, helpDocumentPath, Logger);
 }
 
@@ -202,15 +268,14 @@ function printExamples(meta, params, Logger)
 }
 
 /**
- *  入口函数
- *  @param {Array<String>} params 参数数组
+ *  @param {Array<String>} params 参数集合
  *  @param {MainRunningMeta} meta meta
- *  @param {Params} __this 当前运行的参数命令对象
- *  @returns {void}
+ *  @param {Params} __this 当前参数命令对象
+ *  @param {String} taskName 任务名称
  */
-function main(params, meta, __this)
+function main(params, meta, __this, taskName)
 {
-    const Logger = new LoggerSaver("Print_Help_Task", meta.cwd, meta.singleMap.isSaveLog.include);
+    const Logger = new LoggerSaver(taskName, meta.cwd, meta.singleMap.isSaveLog.include);
 
     if (!checkRequired(meta, Logger)) return Logger.close();
 

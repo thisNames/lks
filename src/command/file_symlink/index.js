@@ -6,12 +6,11 @@ const pt = require("node:path");
 
 // class
 const LoggerSaver = require("../../class/LoggerSaver");
-const GlobalConfig = require("../../config/GlobalConfig");
 const Tools = require("../../class/Tools");
 const MainRunningMeta = require("../../class/MainRunningMeta");
 const Params = require("../../class/Params");
 
-const OPTION = require("./lib/option");
+const OP = require("./lib/option");
 
 /**
  *  收集文件
@@ -127,38 +126,33 @@ function printCollectFiles(files, Logger)
 }
 
 /**
- *  @description SymbolicLink（符号链接）命令，为指定的源目录生成符号链接
- *  @param {Array<String>} params 运行参数
- *  @param {MainRunningMeta} meta 主运行任务信息
- *  @param {Params} __this 当前参数命令对象（内部使用）
+ *  SymbolicLink（符号链接）命令，为指定的源目录生成符号链接
+ *  @param {Array<String>} params 参数集合
+ *  @param {MainRunningMeta} meta meta
+ *  @param {Params} __this 当前参数命令对象
+ *  @param {String} taskName 任务名称
  */
-async function main(params, meta, __this)
+async function main(params, meta, __this, taskName)
 {
     // 解构参数
     let extName = params[0]; // 文件拓展名
-    let { key: sourceFolder, singleMap, cwd } = meta;
+    let isSaveLog = meta.singleMap.isSaveLog.include;
+    let sourceFolder = meta.key;
+    let workerFolder = meta.cwd || process.cwd();
 
-    let isRecursion = singleMap.isRecursion.include;
-    let isSaveLog = singleMap.isSaveLog.include;
-    let recursionDeep = GlobalConfig.recursionDeep;
-    let collectFileMaxCount = GlobalConfig.collectFileMaxCount;
-
-    // 获取工作路径，符号链接生成路径（目标）
-    let workerFolder = cwd || process.cwd();
+    const Logger = new LoggerSaver(taskName, workerFolder, isSaveLog);
 
     // 检测是否是管理员运行
-    const Logger = new LoggerSaver("File_Symlink_Task", workerFolder, isSaveLog);
-
     if (!Tools.isAdministrator()) return Logger.error("你没有管理员权限，无法执行。").close();
 
     // 判断源目录是否存在
     if (!fs.existsSync(sourceFolder)) return Logger.error(`ERROR: 没有这样的目录 => ${sourceFolder}`).close();
 
     // 收集文件
-    const files = collectFiles(sourceFolder, extName, isRecursion, recursionDeep, collectFileMaxCount);
+    const files = collectFiles(sourceFolder, extName, OP.isRecursion, OP.recursionDeep, OP.maxFile);
 
     // 打印收集，不创建符号链接
-    if (OPTION.isDisplayOnly) return printCollectFiles(files, Logger);
+    if (OP.isDisplayOnly) return printCollectFiles(files, Logger).close();
 
     // 开始创建符号链接
     let result = await createSymlink(files, workerFolder, item => item.ok ? Logger.info(item.message) : Logger.error(item.message));

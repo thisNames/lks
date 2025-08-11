@@ -1,38 +1,31 @@
 const ParamsMapping = require("../../class/ParamsMapping");
+const LoggerSaver = require("../../class/LoggerSaver");
 const GlobalConfig = require("../../config/GlobalConfig");
-const Tools = require("../../class/Tools");
 
-const print_global_config = new ParamsMapping("-pgc", {
-    key: "--global-config",
+// 显示全局配置
+const print_globalConfig = new ParamsMapping("pgc", {
+    key: "pgconfig",
     count: 0,
     defaults: [],
     description: "显示全局配置"
-}).addTask("--global-config", (params, meta) => require("./print_config")(params, meta));
-
-const set_recursion = new ParamsMapping("-sr", {
-    key: "--set-recursion",
-    count: 1,
-    defaults: [GlobalConfig.recursionDeep],
-    description: "设置递归最大深度",
-    example: "example/params_set_recursion.txt",
-    before: true
-}).addTask("--set-recursion", (params, meta) =>
-{
-    let value = Tools.typeInt(params[0], GlobalConfig.recursionDeep);
-    GlobalConfig.recursionDeep = value;
 });
 
-const set_collect_files = new ParamsMapping("-scf", {
-    key: "--set-files",
-    count: 1,
-    defaults: [GlobalConfig.collectFileMaxCount],
-    description: "设置文件收集最大数量，小于 1 则不做限制",
-    example: "example/params_set_collect_file_max.txt",
-    before: true
-}).addTask("--set-files", (params, meta) =>
+// 注册任务
+print_globalConfig.addTask("globalConfig", (params, meta, __this, taskName) =>
 {
-    let value = Tools.typeInt(params[0], GlobalConfig.collectFileMaxCount);
-    GlobalConfig.collectFileMaxCount = value;
+    const Logger = new LoggerSaver(taskName, meta.cwd, meta.singleMap.isSaveLog.include);
+
+    for (const key in GlobalConfig)
+    {
+        if (Object.prototype.hasOwnProperty.call(GlobalConfig, key))
+        {
+            const element = GlobalConfig[key];
+            let msg = key.concat(" = ", element)
+            Logger.info(msg);
+        }
+    }
+
+    Logger.close();
 });
 
-module.exports = [print_global_config, set_collect_files, set_recursion];
+module.exports = [print_globalConfig];

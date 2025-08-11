@@ -1,58 +1,111 @@
-# 批量创建符号链接
+# LKS（批量创建符号链接）
 
-## 支持的系统
+## 简介
+### 本项目简介
+- 本项目是 2025 年 7 月创建，实现自动化注册命令。通过解析命令行参数，执行对应的任务
+- 本项目不依赖任何第三方库，基于 NodeJS 开发，采用 CommonJS 规范
+### 支持的系统
 1. Windows
 
-## 开发规范
-### 目录
-- `index.js` 主执行文件（入口）
+## 项目结构
 - `/src` 源码目录
-- `/src/index.js` src 入口文件
-- `/src/command.js` 自动注册参数命令模块
 - `/src/class` 所有公共类的存放目录
+- `/src/command` 所有功能模块（命令）的存放目录
+- `/src/config` 全局配置模块目录
+- `/src/command.js` 自动注册参数命令模块
+- `/src/index.js` src 入口文件
+- `index.js` 主执行文件（入口）
+- `lks.bat` 项目的启动脚本
+
+## 功能模块定义
+### 创建
 - `/src/command/<功能模块名称>` 实现功能的模块目录（目录的名称就是功能的名称）
 
-### 功能模块定义：
-- 模块里必须要有一个 command.js 文件
-- command.js 并且返回一个数组，数组项是参数命令映射表配置类 `（class/ParamsMapping）`
-- 例如：
+### 结构
+- 模块里必须要有一个 `command.js` 文件
+- `command.js` 并且返回一个数组，数组项是参数命令映射表配置类 [class/ParamsMapping](./src/class/ParamsMapping.js)
+
+### 示例
+- `command.js`:
+- 更多配置可查看：[class/Params](./src/class/Params.js)（核心类） `extends` [class/Single](./src/class/Single.js)
+- 示例 2：[addition/command.js](./src/command/addition/command.js)
 ```js
+// 导入配置类
 const ParamsMapping = require("../../class/ParamsMapping");
-// 定义
-const version = new ParamsMapping("-v", {
-    key: "--version",
+
+// 显示当前版本（命令的功能：-v -version）
+const version = new ParamsMapping("v", {
+    key: "version",
     count: 0,
     defaults: [],
     description: "显示当前版本"
-}).addTask("print_version", (params, meta, __this) => require("./index")(params, meta, __this));
-// 暴露
+});
+
+// 注册任务，使用动态导入模块（推荐）
+version.addTask("version", (...args) => require("./index")(...args));
+
 module.exports = [version];
 ```
+- `index.js`:
+```js
+const Params = require("../../class/Params");
+const MainRunningMeta = require("../../class/MainRunningMeta");
 
+/**
+ *  @description 任务函数
+ *  @param {Array<String>} params 参数集合
+ *  @param {MainRunningMeta} meta meta
+ *  @param {Params} __this 当前参数命令对象
+ *  @param {String} taskName 任务名称
+ */
+module.exports = function (param, meta, __this, taskName)
+{
+   // ...you code
+};
+
+```
+## 开发规范
 ### 引用
-- 只能外面的引用里面的 js（或者同级目录），里面的不能跳出来引用外面的 js。（class 除外）
+- 功能模块只能引用自己里面的 js（或者同级目录），里面的不能跳出来引用外面的 js。（class, config 除外）
+- 确保每个命令对应一个功能模块`command/<功能模块名称>`，互不干扰
 
 ### 调试
-- 调试代码附上注释：`TODO: debug line comment` 字样：
+- 调试代码附上注释：`TODO: debug line comment` 字样
 
-## 命令
+## 脚本命令
+- 可将项目配置环境变量
 
 ### `lks`
-`lks`命令用于批量创建符号链接。
+#### 说明
+- 项目的启动脚本
+- 可自行修改此脚本文件的名称
 
-#### 用法
+#### 使用
 ```bash
-lks [源目录] [目标目录]
+lks -h
 ```
 
-#### 参数
-- `[源目录]`: 需要创建符号链接的源目录。
-- `[目标目录]`: 符号链接的目标目录。
-
 ### `lk`
+#### 说明
 - Windows Bat Script
 - 批量为目录内的指定后缀的文件，创建符号链接
-- 可修改命令的名称，只需要将项目中的 `lk.xxx` 修改为：`自定义名称.xxx` 即可
+
+#### 使用
+```bash
+lk <目录路径> <后缀名>
+```
+
+## command
+### 以包含的功能模块
+1. [addition](./src/command/addition): 累加法功能（用于测试的命令）
+2. [download_vpk](./src/command/download_vpk): 下载 Steam 创意工坊免费内容文件
+3. [file_symlink](./src/command/file_symlink): 批量为文件创建符号链接
+4. [global_config](./src/command/global_config): 显示全局配置信息
+5. [print_help](./src/command/print_help): 命令帮助、命令帮助文档（用于查看最终生成的命令名称，如：add => -add）
+6. [print_version](./src/command/print_version): 打印版本号
+
+### 说明
+- 如果不想要哪个命令模块直接删除对应的目录即可
 
 ## 备注
 - `[2025年7月20日]`
@@ -90,3 +143,6 @@ lks [源目录] [目标目录]
 
 - `[2025年7月31日]`
     * 优化网络请求
+
+- `[2025年8月11日]`
+    * 新增子命令配置

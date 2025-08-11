@@ -1,9 +1,9 @@
 /**
  *  src 入口文件
- *  @version 0.0.3
+ *  @version 0.0.4
  */
 
-const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP } = require("./command"); // 命令表
+const { PARAMS_MAP, SINGLE_MAP, PARAMS_KEY_MAP, ORIGIN_LIST_PARAMS_MAPPING } = require("./command"); // 命令表
 
 // class
 const Logger = require("./class/Logger");
@@ -25,5 +25,6 @@ process.addListener("exit", () =>
 module.exports = {
     PARAMS_MAP,
     SINGLE_MAP,
-    PARAMS_KEY_MAP
+    PARAMS_KEY_MAP,
+    ORIGIN_LIST_PARAMS_MAPPING
 };

@@ -51,7 +51,7 @@ async function requestCollectionDetails(ids)
     let origin = new URL(CONFIG.steam.base + CONFIG.steam.api.GetCollectionDetails.uri);
     // let origin = new URL(CONFIG.test.base + CONFIG.test.api.GetCollectionDetails.uri);
 
-    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, OPTION.option.timeout).catch(error => ({ error }));
+    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, OPTION.timeout).catch(error => ({ error }));
 
     if (response.error || response.message != "json" || response.code != 200) return Promise.reject(`requestCollectionDetails => ${response.error || "Unknown request error"}`); // 404
 
@@ -110,7 +110,7 @@ async function requestPublishedFileDetails(ids)
     let body = fillPublishedFileFormData([...new Set(idCollection)]);
 
     // 开始请求
-    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, OPTION.option.timeout).catch(error => ({ error }));
+    const response = await requestAPI(origin, "POST", CONFIG.steam.headers, body, OPTION.timeout).catch(error => ({ error }));
 
     if (response.error || response.message != "json" || response.code != 200) return Promise.reject(`requestPublishedFileDetails => ${response.error || "Unknown request error"}`);
 
