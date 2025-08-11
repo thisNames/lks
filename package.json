@@ -1,7 +1,7 @@
 {
   "name": "lks",
-  "version": "0.0.5",
-  "description": "批量创建符号链接，工具包",
+  "version": "0.0.6",
+  "description": "实现自动化注册命令。通过解析命令行参数，执行对应的任务",
   "main": "index.js",
   "scripts": {},
   "keywords": [],
