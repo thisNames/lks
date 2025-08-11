@@ -1,18 +1,20 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 const LoggerSaver = require("../../class/LoggerSaver");
+const Logger = require("../../class/Logger");
 
 // 设置累计加法的长度
-const setCount = new ParamsMapping("c", {
+const setCount = new ParamsMapping("ct", {
     key: "count",
     count: 1,
     defaults: [3],
     description: "设置累计加法的参数长度（测试命令）",
     example: "example/params_test_set_add.txt",
-    before: true
+    before: true,
+    accordingLevelRepeat: false
 });
 
 // 累计加法
-const addition = new ParamsMapping("a", {
+const addition = new ParamsMapping("add", {
     key: "addition",
     count: 2,
     defaults: [10, 20],
@@ -53,6 +55,39 @@ setCount.addTask("addition.setCount", (params, meta, __this) =>
     }
 
     return count;
+});
+
+// addListenerTasksAfter 和 addListenerAllTasksAfter
+addition.addListenerTasksAfter("addition", (result, meta, taskName) =>
+{
+    Logger.warn("addition.addListenerTasksAfter:");
+    Logger.info(`taskName: ${taskName}`);
+    Logger.info(`-addition (result): ${result}`);
+    Logger.info("===============================");
+});
+
+addition.addListenerAllTasksAfter("addition", (result, meta, taskName) =>
+{
+    Logger.warn("addListenerAllTasksAfter:");
+    Logger.info(`taskName: ${taskName}`);
+    Logger.info(`-addition (result): ${result}`);
+    Logger.info("===============================");
+});
+
+setCount.addListenerTasksAfter("addition.setCount", (result, meta, taskName) =>
+{
+    Logger.warn("addListenerTasksAfter:");
+    Logger.info(`taskName: ${taskName}`);
+    Logger.info(`-addition-count (result): ${result}`);
+    Logger.info("===============================");
+});
+
+setCount.addListenerAllTasksAfter("addition.setCount", (result, meta, taskName) =>
+{
+    Logger.warn("addListenerAllTasksAfter:");
+    Logger.info(`taskName: ${taskName}`);
+    Logger.info(`-addition-count (result): ${result}`);
+    Logger.info("===============================");
 });
 
 module.exports = [addition];

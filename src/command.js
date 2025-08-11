@@ -82,7 +82,8 @@ function requiredModules(models)
             listParamsMapping = require(model);
         } catch (error)
         {
-            Logger.error(`Module load error in [${model}], ${error.stack || error.message}`);
+            Logger.error(`Module load error in [${model}]`);
+            Logger.error(error.stack || error.message || "unknown error");
             continue;
         }
 
