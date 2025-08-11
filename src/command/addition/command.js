@@ -21,7 +21,7 @@ const addition = new ParamsMapping("add", {
     description: "累计加法（测试命令）",
     example: "example/params_test_set_add.txt",
     children: [setCount],
-    before: true
+    before: false
 });
 
 // 注册任务

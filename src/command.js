@@ -108,7 +108,7 @@ function requiredModules(models)
 
 /**
  *  设置参数命令的等级，并将所有的子命令都提取出来
- *  @version 0.0.2
+ *  @version 0.0.3
  *  @param {Array<ParamsMapping>} listParamsMapping 参数命令集合
  *  @returns {Array<ParamsMapping>} 新的参数命令集合
  */
@@ -120,7 +120,7 @@ function setParamsMappingLevels(listParamsMapping, __level = 1, __mapKey = "", _
         const levelChars = paramsMapping.accordingLevelRepeat ? (paramsMapping.linkSymbol + "").repeat(__level) : paramsMapping.linkSymbol;
 
         paramsMapping.__level = __level;
-        paramsMapping.before = __before;
+        paramsMapping.before = __level > 1 ? __before : paramsMapping.before;
         paramsMapping.parent = __parent;
 
         if (!paramsMapping.parentPrefix)

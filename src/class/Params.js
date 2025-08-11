@@ -22,11 +22,14 @@ const MainRunningMeta = require("./MainRunningMeta");
 
 /**
  *  参数命令参数类
- *  @version 0.1.0
+ *  @version 0.1.1
  *  @description
  *  执行顺序：
- *      前置命令先执行（running），如果都是前置，那么就按照终端输入的顺序执行（先后顺序执行）；
- *      普通指令（before=false），等所有的前置命令都执行结束后，按照终端输入的顺序执行（先后顺序执行）；
+ *      前置（before=true）命令先执行（running）
+ *          如果都是前置：那么就按照等级（__level：子命令确定等级）从大到小去执行
+ *          如果等级一样：那么就按照终端输入的顺序执行（先后顺序执行）
+ *      普通指令（before=false）
+ *          等所有的前置命令都执行结束后，按照终端输入的顺序执行（先后顺序执行）
  */
 class Params extends Single
 {
