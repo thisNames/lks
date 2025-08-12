@@ -5,3 +5,4 @@
 /http
 /src/command/download_vpk/config/*.json
 /dist
+/src/command/fchange/options/data/*.json
