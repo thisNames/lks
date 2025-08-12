@@ -90,7 +90,7 @@ function fillParamsFSplice(pm, dvpKey, index, processArgv)
             pm.params.push(pm.defaults[i]);
             continue;
         }
-        let pv = pvs[i];
+        let pv = pvs.shift();
         pm.params.push(pv == dvpKey ? pm.defaults[i] : pv);
 
     }
