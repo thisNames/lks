@@ -103,6 +103,7 @@ lk <目录路径> <后缀名>
 4. [global_config](./src/command/global_config): 显示全局配置信息
 5. [print_help](./src/command/print_help): 命令帮助、命令帮助文档（用于查看最终生成的命令名称，如：add => -add）
 6. [print_version](./src/command/print_version): 打印版本号
+7. [fchange](./src/command/fchange): 收藏目录
 
 ### 说明
 - 如果不想要哪个命令模块直接删除对应的目录即可
@@ -146,3 +147,6 @@ lk <目录路径> <后缀名>
 
 - `[2025年8月11日]`
     * 新增子命令配置
+
+- `[2025年8月13日]`
+    * 修复前置命令无法获取第二个默认参数问题
