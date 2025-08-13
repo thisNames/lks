@@ -1,21 +1,22 @@
 const fs = require("node:fs");
-const pt = require("node:path");
 
 const LoggerSaver = require("../../../class/LoggerSaver");
 const Params = require("../../../class/Params");
 const MainRunningMeta = require("../../../class/MainRunningMeta");
 
-const DirItem = require("../class/DirItem");
-
-const OP = require("../options/options");
+const Lister = require("../options/lister");
 
 /**
- *  @param {DirItem} dItem 目录对象
- *  @returns {Number}
+ *  校验路径的有效性
+ *  @param {String} path 路径
+ *  @returns {Boolean}
  */
-function __addItem(dItem)
+function valDirPath(path)
 {
+    if (!fs.existsSync(path)) return false;
+    if (fs.statSync(path).isFile()) return false;
 
+    return true;
 }
 
 /**
@@ -29,12 +30,36 @@ function main(params, meta, __this, taskName)
 {
     const logger = new LoggerSaver(taskName, meta.cwd, meta.singleMap.isSaveLog.include);
 
-    const name = params[0];
-    const path = params[1];
+    const name = (params[0] + "").trim();
+    const path = (params[1] + "").trim();
+    const items = Lister.findDirItems(name, path, false);
 
-    console.log(name, path);
+    // 检查是否重复
+    if (items.length > 0)
+    {
+        const listLines = Lister.printLister(items, (v, i) => [v.index, v.item]);
 
+        logger.error("已存在：");
+        listLines.forEach(line => logger.info(line));
+        logger.close();
+        return;
+    }
+    // 检查路径有效性
+    if (!valDirPath(path))
+    {
+        logger.error("无效目录：" + path).close();
+        return;
+    }
 
+    // 结果
+    const index = Lister.addItems(name, path);
+    logger.success("添加成功！ index => " + index);
+
+    // 保存
+    const saverMessage = Lister.dirListSaver(Lister.lister());
+
+    logger.info(saverMessage);
+    logger.close();
 }
 
 module.exports = main;

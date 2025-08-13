@@ -16,7 +16,6 @@ function __loadDirData()
             const item = data[i];
 
             const dm = new DirItem({
-                id: item.id,
                 name: item.name,
                 path: item.path
             });

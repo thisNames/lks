@@ -5,7 +5,7 @@ const crypto = require("node:crypto");
 
 /**
  *  工具类
- *  @version 0.0.6
+ *  @version 0.0.7
  */
 class Tools
 {
@@ -311,13 +311,14 @@ class Tools
         return map;
     }
 
-
     /**
      *  比较两个字符串是否相等
      *  @version 0.0.1
      *  @param {String} sa 比较的字符串 A
      *  @param {String} sb 比较的字符串 B
      *  @param {Boolean} [ignoreCase=false] 是否区分大小写
+     *  @returns {Boolean}
+     *  @deprecated 请使用 class/FormatString.equalString()
      */
     static equalString(sa, sb, ignoreCase = false)
     {

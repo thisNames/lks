@@ -1,5 +1,14 @@
 const ParamsMapping = require("../../class/ParamsMapping");
 
+// 搜索一个目录名
+const fSearchDirectory = new ParamsMapping("s", {
+    key: "fsearch",
+    count: 1,
+    defaults: [0],
+    description: "打开目录、修改当前的工作目录。 <name / path>",
+    accordingLevelRepeat: false
+});
+
 // 显示已经收录的目录列表
 const listDirectory = new ParamsMapping("l", {
     key: "list",
@@ -14,16 +23,16 @@ const enTerminal = new ParamsMapping("t", {
     key: "ter",
     count: 0,
     defaults: [],
-    description: "修改当前终端工作路径、或者打开一个目录 => explorer",
+    description: "修改本次运行的工作路径、而不是打开一个 explorer 目录",
     accordingLevelRepeat: false
 });
 
 // 删除一个目录，ID
 const fDeleteDirectory = new ParamsMapping("d", {
     key: "del",
-    count: 1,
-    defaults: [null],
-    description: "使用 ID 删除一个目录",
+    count: -1,
+    defaults: [],
+    description: "使用 ID 删除一个目录 [id1] [id2] [id3~id7]",
     accordingLevelRepeat: false
 });
 
@@ -37,12 +46,12 @@ const fAddDirectory = new ParamsMapping("a", {
 });
 
 // 修改当前路径命令
-const fChange = new ParamsMapping("fcg", {
-    key: "fchange",
+const fChange = new ParamsMapping("fd", {
+    key: "fdir",
     count: 1,
     defaults: [0],
-    description: "打开目录、修改当前的工作目录",
-    children: [fAddDirectory, fDeleteDirectory, enTerminal, listDirectory]
+    description: "打开目录、修改当前的工作目录。<id / name>",
+    children: [fAddDirectory, fDeleteDirectory, enTerminal, listDirectory, fSearchDirectory]
 });
 
 // 注册任务
@@ -59,6 +68,21 @@ listDirectory.addTask("fchange.list", (...args) =>
 fAddDirectory.addTask("fchange.add", (...args) =>
 {
     require("./command/add_dir")(...args);
+});
+
+fDeleteDirectory.addTask("fchange.del", (...args) =>
+{
+    require("./command/delete_dir")(...args);
+});
+
+fChange.addTask("fchange", (...args) =>
+{
+    require("./command/change_dir")(...args);
+});
+
+fSearchDirectory.addTask("fchange.search", (...args) =>
+{
+    require("./command/search_dir")(...args);
 });
 
 module.exports = [fChange];

@@ -5,7 +5,7 @@ const MainRunningMeta = require("../../../class/MainRunningMeta");
 const Lister = require("../options/lister");
 
 /**
- *  显示已经收录的目录列表
+ *  搜索一个目录
  *  @param {Array<String>} params 参数集合
  *  @param {MainRunningMeta} meta meta
  *  @param {Params} __this 当前参数命令对象
@@ -14,18 +14,14 @@ const Lister = require("../options/lister");
 function main(params, meta, __this, taskName)
 {
     const logger = new LoggerSaver(taskName, meta.cwd, meta.singleMap.isSaveLog.include);
+    const search = (params[0] + "").trim();
+    const results = Lister.findDirItems(search, search, true);
 
-    // 检查目录配置是否被初始化
-    if (Lister.isEmptyList())
-    {
-        logger.info("目录列表为空").close();
-        return;
-    }
+    // 空
+    if (results.length < 1) return logger.error("未搜索到符合的目录");
 
-    logger.tip(`目录列表：${Lister.listTotal()} 项`);
-
-    const listLines = Lister.printLister(Lister.lister(), (v, i) => [i, v]);
-    listLines.forEach((line, i) => i % 2 == 0 ? logger.light(line) : logger.info(line));
+    logger.success(`共搜索到 ${results.length} 项：`);
+    Lister.printLister(results, (v, i) => [v.index, v.item]).forEach(line => logger.light(line));
 
     logger.close();
 }
